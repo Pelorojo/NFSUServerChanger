@@ -1,11 +1,8 @@
-# NFSU Trax Renamer
-NFSU Trax Renamer is a script mod which can change the names of EA Trax songs without HEX editing the .exe file manually.
-It has these options for each song:
-+ Title (If you want to see brackets in names like vanilla, place them twice.)
-+ Artist
-+ Album
-+ PlayIn (Available options are FE, IG and AL. It's used to choose default setting for the new save games.)
+# NFSU Server Changer
+NFSU Server Changer is a script mod which can change the gameserver without HEX editing the .exe file manually.
+There is only one option yet:
++ Host (-name or IP)
 
 # Download
-You can [download Trax Renamer](https://github.com/nlgzrgn/NFSUTraxRenamer/releases) from Releases page, or from [NFSMods.xyz](https://www.nfsmods.xyz).
+You can [download Server Changer](https://github.com/Pelorojo/NFSUServerChanger/releases) from Releases page, or from [onlyami.ga](https://onlyami.ga/files).
 If you want to compile it yourself, you can download the source code from the green Clone or Download button up there.

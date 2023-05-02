@@ -1,7 +1,14 @@
 # NFSU Server Changer
-NFSU Server Changer is a script mod which can change the gameserver without HEX editing the .exe file manually.
-There is only one option yet:
+NFSU Server Changer is a script mod which can change the gameserver without HEX editing the .exe file manually,
+but also features renaming EATrax, see .ini file for details.
+
+There are following options:
+
+Game server:
 + Host (-name or IP)
+
+Trax Renamer:
++ NoQuotes
 
 # Download
 You can [download Server Changer](https://github.com/Pelorojo/NFSUServerChanger/releases) from Releases page, or from [onlyami.ga](https://onlyami.ga/files).

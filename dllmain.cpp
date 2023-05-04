@@ -47,6 +47,7 @@ void loadCSV(const char* filename, char* data[traxRows][traxCols])
 			if (value.empty()) {
 				value = " ";
 			}
+			replace(value.begin(), value.end(), '^', ';');
 			data[row][col] = new char[value.length() + 1];
 			strcpy(data[row][col], value.c_str());
 			col++;

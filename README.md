@@ -11,5 +11,5 @@ Trax Renamer:
 + NoQuotes
 
 # Download
-You can [download Server Changer](https://github.com/Pelorojo/NFSUServerChanger/releases) from Releases page, or from [onlyami.ga](https://onlyami.ga/files).
+You can [download Server Changer](https://github.com/Pelorojo/NFSUServerChanger/releases) from Releases page, or from [NFS.onl](https://nfs.onl/files).
 If you want to compile it yourself, you can download the source code from the green Clone or Download button up there.

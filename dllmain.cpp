@@ -89,6 +89,9 @@ int Init()
 			else if (tolower(traxPlay[0]) == 'a') {
 				strcpy(traxPlay, "AL");
 			}
+			else if (tolower(traxPlay[0]) == 'x') {
+				strcpy(traxPlay, "OF");
+			}
 			else {
 				if (i < 19) {
 					strcpy(traxPlay, "IG");

@@ -15,11 +15,15 @@ const size_t traxOffset = 0x10;
 
 const char* defaultSrv = "ps2nfs04.ea.com";
 
-const uintptr_t serverAddr = 0x6F1F40;
-const uintptr_t acceptAddr = 0x734F54;
+const uintptr_t serverAddrs[2] = { 0x6F1F40, 0x6F2078 }; // English, Russian
+uintptr_t serverAddr;
 
-// Base mem addr: title, artist, album, play
-const uintptr_t traxAddr[traxCols] = { 0x6F4D08, 0x6F4D0C, 0x6F4D10, 0x6F4D14 };
+const uintptr_t acceptAddrs[3] = { 0x734F54, 0x734F50, 0x7354AC }; // North America, Europe, Russia
+uintptr_t acceptAddr;
+
+const uintptr_t traxAddrs[2] = { 0x6F4D08, 0x6F4E40 }; // English, Russian
+// + 0*4 -> title, + 1*4 -> artist, +2*4 -> album, +3*4 -> play
+uintptr_t traxAddr;
 
 const char* iniFile = "NFSUServerChanger.ini";
 const char* csvFile = "NFSUServerChangerTrax.csv";
@@ -109,10 +113,12 @@ int Init()
 				traxTitle = quotedTitle;
 			}
 
-			injector::WriteMemory(traxOffset * i + traxAddr[0], traxTitle, true);
-			injector::WriteMemory(traxOffset * i + traxAddr[1], traxArtist, true);
-			injector::WriteMemory(traxOffset * i + traxAddr[2], traxAlbum, true);
-			injector::WriteMemory(traxOffset * i + traxAddr[3], traxPlay, true);
+			char* traxSet[4] = { traxTitle, traxArtist, traxAlbum, traxPlay };
+
+			for (int j = 0; j < 4; ++j) {
+				injector::WriteMemory(traxOffset * i + traxAddr + j * 4, traxSet[j], true);
+			}
+
 		}
 	}
 
@@ -136,6 +142,12 @@ int Init()
 	return 0;
 }
 
+// Function to get the checksum
+DWORD GetCheckSum(IMAGE_NT_HEADERS* nt)
+{
+	return nt->OptionalHeader.CheckSum; // Return the checksum from the optional header
+}
+
 BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD reason, LPVOID /*lpReserved*/)
 {
 	if (reason == DLL_PROCESS_ATTACH)
@@ -144,16 +156,43 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD reason, LPVOID /*lpReserved*/)
 		IMAGE_DOS_HEADER* dos = (IMAGE_DOS_HEADER*)(base);
 		IMAGE_NT_HEADERS* nt = (IMAGE_NT_HEADERS*)(base + dos->e_lfanew);
 
-		if ((base + nt->OptionalHeader.AddressOfEntryPoint + (0x400000 - base)) == 0x670CB5) // Check if .exe file is compatible - Thanks to thelink2012 and MWisBest
-			Init();
+		uintptr_t entryPoint = base + nt->OptionalHeader.AddressOfEntryPoint + (0x400000 - base);
 
+		// Check if the executable is compatible
+		if (entryPoint == 0x670CB5 || entryPoint == 0x670515) // English or SoftClub
+		{
+			// Get the current checksum
+			DWORD currentChecksum = GetCheckSum(nt);
+
+			// Check against the expected checksums
+			switch (currentChecksum)
+			{
+			case 0x003126F3: // North America
+				serverAddr = serverAddrs[0];
+				traxAddr = traxAddrs[0];
+				acceptAddr = acceptAddrs[0];
+				break;
+			case 0x00314E20: // Europe
+				serverAddr = serverAddrs[0];
+				traxAddr = traxAddrs[0];
+				acceptAddr = acceptAddrs[1];
+				break;
+			case 0x0030CBA0: // Russia
+				serverAddr = serverAddrs[1];
+				traxAddr = traxAddrs[1];
+				acceptAddr = acceptAddrs[2];
+				break;
+			default:
+				MessageBoxA(NULL, "This .exe version is not supported.\nPlease use the correct version.", "NFSU Server Changer", MB_ICONERROR);
+				return FALSE;
+			}
+			Init();
+		}
 		else
 		{
-			MessageBoxA(NULL, "This .exe is not supported.\nPlease use v1.4 English speed.exe (3,03 MB (3.178.496 bytes)).", "NFSU Server Changer", MB_ICONERROR);
+			MessageBoxA(NULL, "This .exe is not supported.\nPlease use v1.4 of Speed.exe (3,03 MB (3.178.496 bytes)).", "NFSU Server Changer", MB_ICONERROR);
 			return FALSE;
 		}
 	}
 	return TRUE;
-
 }
-

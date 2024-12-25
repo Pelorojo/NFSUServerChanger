@@ -18,7 +18,7 @@ const char* defaultSrv = "ps2nfs04.ea.com";
 const uintptr_t serverAddrs[2] = { 0x6F1F40, 0x6F2078 }; // English, Russian
 uintptr_t serverAddr;
 
-const uintptr_t acceptAddrs[3] = { 0x734F54, 0x734F50, 0x7354AC }; // North America, Europe, Russia
+const uintptr_t acceptAddrs[3] = { 0x734F54, 0x734F4C, 0x7354AC }; // North America, Europe, Russia
 uintptr_t acceptAddr;
 
 const uintptr_t traxAddrs[2] = { 0x6F4D08, 0x6F4E40 }; // English, Russian

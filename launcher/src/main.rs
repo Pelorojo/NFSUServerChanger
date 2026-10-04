@@ -122,6 +122,8 @@ fn main() -> Result<(), slint::PlatformError> {
     // The saved choice, else the system's language; English if there's no such file.
     let lang_dir = Some(files.borrow().lang.clone());
     let saved = settings::language(files.borrow().ini.as_deref());
+    let no_saved_language = saved.is_empty();
+    let system_language = i18n::system_language();
     let wanted = if saved.is_empty() {
         i18n::system_language()
     } else {
@@ -246,6 +248,44 @@ fn main() -> Result<(), slint::PlatformError> {
             }
         }
     });
+    // No saved language and the system's isn't installed: if the repo has it, offer to
+    // download it - or to stay in English, which is then saved so it isn't asked again.
+    if no_saved_language && current == "en" && system_language != "en" {
+        let weak = app.as_weak();
+        let online = online.clone();
+        std::thread::spawn(move || {
+            let Ok(Some(lang)) = i18n::online_language(&system_language) else {
+                return;
+            };
+            let _ = slint::invoke_from_event_loop(move || {
+                let Some(app) = weak.upgrade() else { return };
+                app.set_lang_offer_code(lang.code.as_str().into());
+                app.set_lang_offer_name(lang.name.as_str().into());
+                // The question in that language too (it's in the downloaded file).
+                app.set_lang_offer_native(
+                    lang.text_for("lang_offer.text")
+                        .map(|t| t.replace("{0}", &lang.name))
+                        .unwrap_or_default()
+                        .into(),
+                );
+                let mut online = online.lock().unwrap_or_else(|e| e.into_inner());
+                if !online.iter().any(|l| l.code == lang.code) {
+                    online.push(lang);
+                }
+                app.set_lang_offer(true);
+            });
+        });
+    }
+    app.on_lang_offer_stay({
+        let weak = app.as_weak();
+        let files = files.clone();
+        move || {
+            let app = weak.unwrap();
+            settings::set_language(files.borrow().ini.as_deref(), "en");
+            app.set_lang_offer(false);
+        }
+    });
+
     // Removing the current language goes back to English.
     app.on_remove_language({
         let weak = app.as_weak();
@@ -306,7 +346,14 @@ fn main() -> Result<(), slint::PlatformError> {
     app.on_check_for_updates({
         let weak = app.as_weak();
         let files = files.clone();
-        move || check_for_updates(&weak.unwrap(), &files.borrow(), false)
+        move || {
+            let app = weak.unwrap();
+            // The menu entry can't be disabled while installing (see app.slint).
+            if app.get_installing() || !app.get_launcher_restart().is_empty() {
+                return;
+            }
+            check_for_updates(&app, &files.borrow(), false)
+        }
     });
     // "Update" in the updates popup: install, then restart into the new launcher.
     app.on_update_launcher({
@@ -360,7 +407,13 @@ fn main() -> Result<(), slint::PlatformError> {
         let weak = app.as_weak();
         let custom = custom.clone();
         let files = files.clone();
-        move || start_fetch(weak.clone(), custom.borrow().clone(), &files.borrow())
+        move || {
+            // Also reached from the menu, which can't be disabled while loading (see app.slint).
+            if weak.unwrap().get_loading() {
+                return;
+            }
+            start_fetch(weak.clone(), custom.borrow().clone(), &files.borrow())
+        }
     });
 
     app.on_host_changed({
@@ -396,7 +449,9 @@ fn main() -> Result<(), slint::PlatformError> {
             }
             let mut list = custom.borrow().clone();
             list.push(host.to_string());
-            save_custom_list(&app, &custom, &files.borrow(), list);
+            if save_custom_list(&app, &custom, &files.borrow(), list) {
+                app.set_message(tf("msg.added_to_list", &[host]).into());
+            }
         }
     });
 
@@ -413,7 +468,9 @@ fn main() -> Result<(), slint::PlatformError> {
                 .filter(|h| !h.eq_ignore_ascii_case(host))
                 .cloned()
                 .collect();
-            save_custom_list(&app, &custom, &files.borrow(), list);
+            if save_custom_list(&app, &custom, &files.borrow(), list) {
+                app.set_message(tf("msg.removed_from_list", &[host]).into());
+            }
         }
     });
 
@@ -506,6 +563,7 @@ fn main() -> Result<(), slint::PlatformError> {
             let ini = files.borrow().ini.clone();
             app.set_settings_editor(settings::editor(ini.as_deref()).into());
             app.set_settings_command(settings::launch_command(ini.as_deref()).into());
+            app.set_settings_command_hint(launcher::command_hint().into());
             app.set_settings_launch_info(launcher::launch_info(&files.borrow().game_dir).into());
             #[cfg(not(windows))]
             {
@@ -1107,7 +1165,7 @@ fn save_custom_list(
     custom: &RefCell<Vec<String>>,
     files: &Files,
     list: Vec<String>,
-) {
+) -> bool {
     if let Err(e) = write_custom_list(&files.custom, &list) {
         app.set_message(
             tf(
@@ -1116,11 +1174,12 @@ fn save_custom_list(
             )
             .into(),
         );
-        return;
+        return false;
     }
     *custom.borrow_mut() = list;
     app.set_input_is_custom(contains_host(&custom.borrow(), app.get_host_input().trim()));
     start_fetch(app.as_weak(), custom.borrow().clone(), files);
+    true
 }
 
 // --- Fetching ---------------------------------------------------------------

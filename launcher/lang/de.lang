@@ -10,14 +10,14 @@ main.refresh = Aktualisieren
 main.loading = Lädt…
 main.install_plugin = Plugin installieren
 main.installing = Installiere…
-main.host_placeholder = Hostname oder IP + Enter (leer = Server aus der Spiel-.exe)
-main.add = Hinzufügen
-main.remove = Entfernen
+main.host_placeholder = Hostname oder IP, Enter = auswählen (leer = Server aus der Spiel-.exe)
+main.add_to_list = Zur Liste hinzufügen
+main.remove_from_list = Aus Liste entfernen
 main.start_game = Spiel starten
 row.online = {0} online
 row.checking = wird geprüft…
 row.offline = offline
-row.custom = eigener
+row.custom = in deiner Liste
 
 ; --- Menü ---
 menu.file = Datei
@@ -69,6 +69,8 @@ ping.enable = Jetzt einschalten
 settings.title = Einstellungen
 settings.start_command = Startbefehl
 settings.start_command_placeholder = Leer = automatisch
+settings.start_command_hint_windows = Meist nicht nötig: Leer startet die gewählte speed*.exe direkt. Nur um das Spiel über ein anderes Programm zu starten, {exe} = die gewählte speed*.exe (wird angehängt, wenn es fehlt), z. B. C:\Tools\tool.exe {exe}
+settings.start_command_hint_linux = Meist nicht nötig: Leer startet das Spiel mit Wine bzw. den Lutris-Einstellungen (siehe unten). {exe} = die gewählte speed*.exe (wird angehängt, wenn es fehlt), z. B. gamemoderun wine oder WINEPREFIX=~/Games/nfsu wine
 settings.launch_auto = Automatisch: {0}, die DLLs des Spielordners werden zuerst geladen.
 settings.launch_lutris = Automatisch: Einstellungen des Lutris-Spiels "{0}" ({1}).
 settings.system_wine = System-Wine
@@ -125,6 +127,8 @@ msg.launcher_updated = Launcher {0} installiert - starte neu…
 msg.launcher_update_failed = Launcher-Update fehlgeschlagen: {0}
 msg.could_not_open = Konnte {0} nicht öffnen: {1}
 msg.could_not_write = Konnte {0} nicht schreiben: {1}
+msg.added_to_list = {0} steht jetzt in deiner Liste und wird immer angezeigt, auch offline.
+msg.removed_from_list = {0} ist nicht mehr in deiner Liste.
 msg.started = {0} gestartet.
 msg.game_running = {0} läuft bereits.
 msg.could_not_start = Konnte {0} nicht starten: {1}
@@ -141,3 +145,8 @@ host.invalid_ip = Keine gültige IP-Adresse.
 host.empty_part = Leerer Teil zwischen Punkten.
 host.label_too_long = Ein Teil zwischen Punkten ist länger als 63 Zeichen.
 host.dash = Ein Teil darf nicht mit '-' beginnen oder enden.
+
+; --- Erster Start: Systemsprache zum Herunterladen ---
+lang_offer.text = Den Launcher gibt es auch auf {0}. Herunterladen?
+lang_offer.download = {0} herunterladen
+lang_offer.stay = Bei Englisch bleiben

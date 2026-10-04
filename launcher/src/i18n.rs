@@ -141,12 +141,19 @@ pub struct OnlineLanguage {
     pub text: String,
 }
 
-/// All translations in the repo's `launcher/lang/` (except the built-in English),
-/// downloaded in parallel and sorted by name.
-pub fn online_languages() -> Result<Vec<OnlineLanguage>, Error> {
+impl OnlineLanguage {
+    /// One of its texts, if it has it.
+    pub fn text_for(&self, key: &str) -> Option<String> {
+        parse(&self.text).remove(key)
+    }
+}
+
+/// The translation files in the repo's `launcher/lang/`: (code, download URL), except the
+/// built-in English.
+fn online_files() -> Result<Vec<(String, String)>, Error> {
     let body = ureq::get(LANG_API).call()?.body_mut().read_to_string()?;
     let entries: serde_json::Value = serde_json::from_str(&body)?;
-    let files: Vec<(String, String)> = entries
+    Ok(entries
         .as_array()
         .into_iter()
         .flatten()
@@ -154,27 +161,41 @@ pub fn online_languages() -> Result<Vec<OnlineLanguage>, Error> {
             let code = lang_code(e["name"].as_str()?).filter(|c| c != "en")?;
             Some((code, e["download_url"].as_str()?.to_string()))
         })
-        .collect();
+        .collect())
+}
+
+fn download(code: &str, url: &str) -> Option<OnlineLanguage> {
+    let text = ureq::get(url)
+        .call()
+        .ok()?
+        .body_mut()
+        .read_to_string()
+        .ok()?;
+    // Not a language file without its name.
+    let name = parse(&text).remove(NAME_KEY)?;
+    Some(OnlineLanguage {
+        code: code.to_string(),
+        name,
+        text,
+    })
+}
+
+/// The translation for `code` from the repo, if there is one (only that file is downloaded).
+pub fn online_language(code: &str) -> Result<Option<OnlineLanguage>, Error> {
+    Ok(online_files()?
+        .into_iter()
+        .find(|(c, _)| c.eq_ignore_ascii_case(code))
+        .and_then(|(c, url)| download(&c, &url)))
+}
+
+/// All translations in the repo's `launcher/lang/` (except the built-in English),
+/// downloaded in parallel and sorted by name.
+pub fn online_languages() -> Result<Vec<OnlineLanguage>, Error> {
+    let files = online_files()?;
     let mut langs: Vec<OnlineLanguage> = std::thread::scope(|scope| {
         let downloads: Vec<_> = files
             .iter()
-            .map(|(code, url)| {
-                scope.spawn(move || {
-                    let text = ureq::get(url)
-                        .call()
-                        .ok()?
-                        .body_mut()
-                        .read_to_string()
-                        .ok()?;
-                    // Not a language file without its name.
-                    let name = parse(&text).remove(NAME_KEY)?;
-                    Some(OnlineLanguage {
-                        code: code.clone(),
-                        name,
-                        text,
-                    })
-                })
-            })
+            .map(|(code, url)| scope.spawn(move || download(code, url)))
             .collect();
         downloads
             .into_iter()

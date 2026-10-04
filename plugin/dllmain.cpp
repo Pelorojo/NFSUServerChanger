@@ -15,6 +15,7 @@ Programmed by Redhair in 2026
 #include "EATrax.h"
 #include "PingFix.h"
 #include "ServerLogins.h"
+#include "HolePunch.h"
 
 using namespace std;
 
@@ -77,6 +78,8 @@ uintptr_t resolveHostAddr;
 // in the reader and the writer, and the sprintf.
 const uintptr_t proReadPathCallAddrs[2] = { 0x41D800, 0x41D8E0 }; // English, Russian
 const uintptr_t proWritePathCallAddrs[2] = { 0x41D6E0, 0x41D7C0 }; // English, Russian
+// ... and in the profile deletion
+const uintptr_t proDeletePathCallAddrs[2] = { 0x41E095, 0x41E165 }; // English, Russian
 const uintptr_t sprintfAddrs[2] = { 0x67101F, 0x67087F }; // English, Russian
 // The push of the login's auth reply handler, the handler, and the game's login save.
 const uintptr_t authReplyPushAddrs[2] = { 0x54D8F0, 0x54D9F0 }; // English, Russian
@@ -87,6 +90,7 @@ const uintptr_t preLoginCheckCallAddrs[2] = { 0x5578AE, 0x557A5E }; // English, 
 const uintptr_t preLoginCheckAddrs[2] = { 0x558000, 0x558170 }; // English, Russian
 uintptr_t proReadPathCallAddr;
 uintptr_t proWritePathCallAddr;
+uintptr_t proDeletePathCallAddr;
 uintptr_t sprintfAddr;
 uintptr_t authReplyPushAddr;
 uintptr_t authReplyAddr;
@@ -163,6 +167,10 @@ typedef void* (__cdecl *ResolveHost)(const char* host, int timeoutMs);
 
 void* __cdecl ResolveServer(const char* host, int timeoutMs)
 {
+	// Server changed while the login screen was open: the shown login is another server's, so
+	// the login fails like an unreachable server (ServerLogins.h).
+	if (LoginServerChanged())
+		return NULL;
 	ApplyServer();
 	return reinterpret_cast<ResolveHost>(resolveHostAddr)(host, timeoutMs);
 }
@@ -190,11 +198,12 @@ int Init()
 
 	InstallPingFix(pingCallAddr, socketWrapperAddr);
 
-	// [Logins] PerServer = 0 switches the per-server logins off.
-	if (iniReader.ReadString("Logins", "PerServer", string("1")) != "0")
-		InstallServerLogins(proReadPathCallAddr, proWritePathCallAddr, sprintfAddr,
-			authReplyPushAddr, authReplyAddr, saveLoginAddr,
-			preLoginCheckCallAddr, preLoginCheckAddr2);
+	// [HolePunch] Log = 1: NFSUServerChanger_HolePunch.log next to the .asi.
+	HolePunch::Install(iniReader.ReadString("HolePunch", "Log", string("0")) == "1");
+
+	InstallServerLogins(proReadPathCallAddr, proWritePathCallAddr, proDeletePathCallAddr, sprintfAddr,
+		authReplyPushAddr, authReplyAddr, saveLoginAddr,
+		preLoginCheckCallAddr, preLoginCheckAddr2);
 
 	return 0;
 }
@@ -222,63 +231,33 @@ BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD reason, LPVOID /*lpReserved*/)
 			DWORD currentChecksum = GetCheckSum(nt);
 
 			// Check against the expected checksums
+			int v, a; // v = address set index, a = acceptAddrs index
 			switch (currentChecksum)
 			{
-			case 0x003126F3: // North America
-				serverAddr = serverAddrs[0];
-				traxAddr = traxAddrs[0];
-				acceptAddr = acceptAddrs[0];
-				loginResolveCallAddr = loginResolveCallAddrs[0];
-				resolveHostAddr = resolveHostAddrs[0];
-				pingCallAddr = pingCallAddrs[0];
-				socketWrapperAddr = socketWrapperAddrs[0];
-				proReadPathCallAddr = proReadPathCallAddrs[0];
-				proWritePathCallAddr = proWritePathCallAddrs[0];
-				sprintfAddr = sprintfAddrs[0];
-				authReplyPushAddr = authReplyPushAddrs[0];
-				authReplyAddr = authReplyAddrs[0];
-				saveLoginAddr = saveLoginAddrs[0];
-				preLoginCheckCallAddr = preLoginCheckCallAddrs[0];
-				preLoginCheckAddr2 = preLoginCheckAddrs[0];
-				break;
-			case 0x00314E20: // Europe
-				serverAddr = serverAddrs[0];
-				traxAddr = traxAddrs[0];
-				acceptAddr = acceptAddrs[1];
-				loginResolveCallAddr = loginResolveCallAddrs[0];
-				resolveHostAddr = resolveHostAddrs[0];
-				pingCallAddr = pingCallAddrs[0];
-				socketWrapperAddr = socketWrapperAddrs[0];
-				proReadPathCallAddr = proReadPathCallAddrs[0];
-				proWritePathCallAddr = proWritePathCallAddrs[0];
-				sprintfAddr = sprintfAddrs[0];
-				authReplyPushAddr = authReplyPushAddrs[0];
-				authReplyAddr = authReplyAddrs[0];
-				saveLoginAddr = saveLoginAddrs[0];
-				preLoginCheckCallAddr = preLoginCheckCallAddrs[0];
-				preLoginCheckAddr2 = preLoginCheckAddrs[0];
-				break;
-			case 0x0030CBA0: // Russia
-				serverAddr = serverAddrs[1];
-				traxAddr = traxAddrs[1];
-				acceptAddr = acceptAddrs[2];
-				loginResolveCallAddr = loginResolveCallAddrs[1];
-				resolveHostAddr = resolveHostAddrs[1];
-				pingCallAddr = pingCallAddrs[1];
-				socketWrapperAddr = socketWrapperAddrs[1];
-				proReadPathCallAddr = proReadPathCallAddrs[1];
-				proWritePathCallAddr = proWritePathCallAddrs[1];
-				sprintfAddr = sprintfAddrs[1];
-				authReplyPushAddr = authReplyPushAddrs[1];
-				authReplyAddr = authReplyAddrs[1];
-				saveLoginAddr = saveLoginAddrs[1];
-				preLoginCheckCallAddr = preLoginCheckCallAddrs[1];
-				preLoginCheckAddr2 = preLoginCheckAddrs[1];
-				break;
+			case 0x003126F3: v = 0; a = 0; break; // North America
+			case 0x00314E20: v = 0; a = 1; break; // Europe
+			case 0x0030CBA0: v = 1; a = 2; break; // Russia
 			default:
 				MessageBoxA(NULL, "This .exe version is not supported.\nPlease use the correct version.", "NFSU Server Changer", MB_ICONERROR);
 				return FALSE;
 			}
+
+			serverAddr = serverAddrs[v];
+			traxAddr = traxAddrs[v];
+			acceptAddr = acceptAddrs[a];
+			loginResolveCallAddr = loginResolveCallAddrs[v];
+			resolveHostAddr = resolveHostAddrs[v];
+			pingCallAddr = pingCallAddrs[v];
+			socketWrapperAddr = socketWrapperAddrs[v];
+			proReadPathCallAddr = proReadPathCallAddrs[v];
+			proWritePathCallAddr = proWritePathCallAddrs[v];
+			proDeletePathCallAddr = proDeletePathCallAddrs[v];
+			sprintfAddr = sprintfAddrs[v];
+			authReplyPushAddr = authReplyPushAddrs[v];
+			authReplyAddr = authReplyAddrs[v];
+			saveLoginAddr = saveLoginAddrs[v];
+			preLoginCheckCallAddr = preLoginCheckCallAddrs[v];
+			preLoginCheckAddr2 = preLoginCheckAddrs[v];
 			Init();
 		}
 		else

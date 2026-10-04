@@ -108,7 +108,8 @@ keep those encodings when editing.
   `include_str!`); Slint uses `Tr.get(key, Tr.revision)` / `Tr.fmt(...)`, Rust `i18n::t` / `tf`.
   New text = add the key to **all** `lang/*.lang` files (`translations_complete` test fails
   otherwise). No `&` in texts (Windows menu mnemonics). `[Settings] Language`, else system
-  language.
+  language; if that isn't installed but in the repo, a start overlay offers it (`lang_offer.*`,
+  "Stay in English" saves `en`).
 - Translations are **not shipped**: the launcher's Language menu downloads them from
   `launcher/lang/` on the default branch (GitHub contents API, listed live) into the game's
   `scripts/lang/`, so everything

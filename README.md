@@ -11,15 +11,29 @@ The server is read again at every login, so it can be changed while the game run
 or the launcher): log out, go back to the account screen and log in again. A running online
 session keeps its server.
 
-Per-Server Logins:
-+ PerServer (1 = on, default; 0 = off)
+Per-Server Logins (always on):
 
 Every server has its own accounts, but the game keeps only one saved login per profile
-(`<profile>0.pro` in its save folder). With PerServer, each server gets its own file,
+(`<profile>0.pro` in its save folder). Here, each server gets its own file,
 `<profile>0_<hash>.pro` (the hash is the same for the same Host), so switching servers no longer
 means typing the login again. While a server has no file yet, the login from `<profile>0.pro` is
 shown; after the first successful login there, it is saved for that server. Changing the server
 while the game runs works too: the login screen loads the current server's login when it opens.
+If the server is changed while the login screen is already open, that login fails (like an
+unreachable server) instead of sending the other server's login - just open the screen again.
+
+Hole Punching (always on):
++ Log (1 = write NFSUServerChanger_HolePunch.log next to the .asi; default 0)
+
+Races are peer-to-peer: every player talks to the host over UDP 3658, but the lobby only tells
+the players each other's IP, never a port. Behind a router without port forwarding or on mobile
+internet (carrier-grade NAT), the game's guess of port 3658 is wrong and the race never starts.
+On servers that run the rendezvous service (UDP 10910 on the lobby server, part of nfsuinfoserver),
+the plugin tells the server its real public port from the game's own socket and asks it for the
+other players' ports; the game's packets then go to the right port, and the game's own start
+packets open both NATs. If nothing arrives directly after a few seconds, the race is relayed
+through the server instead. Players without the plugin, and servers without the service, are
+not affected. A local firewall (e.g. ufw on Linux) still has to allow UDP 3658-3659.
 
 Trax Renamer:
 + NoQuotes

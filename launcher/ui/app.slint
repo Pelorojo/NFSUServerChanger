@@ -30,6 +30,8 @@ export struct Server {
     online: int,
     has-stats: bool,
     reachable: bool,
+    // Has the hole punching rendezvous service.
+    hole-punch: bool,
     custom: bool,
     checking: bool,
 }
@@ -94,6 +96,8 @@ component ServerRow inherits Rectangle {
             Text {
                 text: root.server.host
                     + (root.server.checking ? "  ·  " + Tr.get("row.checking", Tr.revision) : root.server.reachable ? "" : "  ·  " + Tr.get("row.offline", Tr.revision))
+                    // a name, not translated
+                    + (root.server.hole-punch ? "  ·  Hole Punch" : "")
                     + (root.server.custom ? "  ·  " + Tr.get("row.custom", Tr.revision) : "");
                 font-size: 13px;
                 overflow: elide;
@@ -172,6 +176,8 @@ export component AppWindow inherits Window {
     // Settings popup
     in-out property <string> settings-editor;
     in-out property <string> settings-command;
+    // What can go into the start command, with examples for this system.
+    in property <string> settings-command-hint;
     // How the game starts without a custom command (Linux: Wine / Lutris settings).
     in property <string> settings-launch-info;
     // Linux: whether the game's pings work; empty on Windows.
@@ -205,6 +211,13 @@ export component AppWindow inherits Window {
     callback restart-as-admin();
     // Linux: offer to switch the game's pings on (needs root, via pkexec).
     in-out property <bool> ping-offer;
+    // First start: the system's language is available for download.
+    in-out property <bool> lang-offer;
+    in property <string> lang-offer-code;
+    in property <string> lang-offer-name;
+    // The question in that language (from its file), empty if it doesn't have it.
+    in property <string> lang-offer-native;
+    callback lang-offer-stay();
     in property <string> ping-command;
     in property <bool> ping-busy;
     in-out property <string> ping-error;
@@ -295,6 +308,12 @@ export component AppWindow inherits Window {
                 LineEdit {
                     text <=> root.settings-command;
                     placeholder-text: Tr.get("settings.start_command_placeholder", Tr.revision);
+                }
+                Text {
+                    text: root.settings-command-hint;
+                    font-size: 13px;
+                    opacity: 0.7;
+                    wrap: word-wrap;
                 }
                 if root.settings-launch-info != "": Text {
                     text: root.settings-launch-info;
@@ -518,6 +537,9 @@ export component AppWindow inherits Window {
                 }
 
                 menu-area := ContextMenuArea {
+                    // No bindings here to state that changes in the background (loading, installing):
+                    // Slint rebuilds an open menu when they change, and its submenus then stop
+                    // opening until it's opened again. The handlers check that state instead.
                     Menu {
                         Menu {
                             title: Tr.get("menu.file", Tr.revision);
@@ -528,7 +550,7 @@ export component AppWindow inherits Window {
                         }
                         Menu {
                             title: Tr.get("menu.server", Tr.revision);
-                            MenuItem { title: Tr.get("menu.refresh", Tr.revision); enabled: !root.loading; activated => { root.refresh(); } }
+                            MenuItem { title: Tr.get("menu.refresh", Tr.revision); activated => { root.refresh(); } }
                             MenuItem {
                                 title: Tr.get("menu.use_original", Tr.revision);
                                 enabled: root.ini-found;
@@ -558,7 +580,6 @@ export component AppWindow inherits Window {
                         MenuSeparator {}
                         MenuItem {
                             title: Tr.get("menu.check_updates", Tr.revision);
-                            enabled: !root.installing && root.launcher-restart == "";
                             activated => { root.check-for-updates(); }
                         }
                         MenuItem {
@@ -648,15 +669,20 @@ export component AppWindow inherits Window {
                 edited => { root.selected = -1; }
                 accepted => { root.apply(self.text); }
             }
+            // One button for your own list (servers.dat): adds the server, or removes it if it's
+            // already there - not to be confused with selecting it (Enter / clicking a row).
             if root.host-input != "": Button {
-                text: Tr.get("main.add", Tr.revision);
-                enabled: !root.input-is-custom && root.host-error == "";
-                clicked => { root.add-custom(input.text); }
-            }
-            if root.host-input != "": Button {
-                text: Tr.get("main.remove", Tr.revision);
-                enabled: root.input-is-custom;
-                clicked => { root.remove-custom(input.text); }
+                text: root.input-is-custom
+                    ? Tr.get("main.remove_from_list", Tr.revision)
+                    : Tr.get("main.add_to_list", Tr.revision);
+                enabled: root.input-is-custom || root.host-error == "";
+                clicked => {
+                    if root.input-is-custom {
+                        root.remove-custom(input.text);
+                    } else {
+                        root.add-custom(input.text);
+                    }
+                }
             }
         }
 
@@ -809,6 +835,57 @@ export component AppWindow inherits Window {
                         primary: true;
                         enabled: !root.ping-busy;
                         clicked => { root.enable-ping(); }
+                    }
+                }
+            }
+        }
+    }
+    if root.lang-offer: Rectangle {
+        x: 0;
+        y: 0;
+        width: root.width;
+        height: root.height;
+        background: #00000080;
+
+        // Blocks clicks on the window behind.
+        TouchArea { }
+
+        Rectangle {
+            x: (parent.width - self.width) / 2;
+            y: 60px;
+            width: min(480px, root.width - 32px);
+            height: lang-offer-box.preferred-height;
+            background: Palette.background;
+            border-width: 1px;
+            border-color: Palette.border;
+            border-radius: 8px;
+
+            lang-offer-box := VerticalBox {
+                padding: 20px;
+                Text { text: root.lang-offer-name; font-size: 18px; font-weight: 700; }
+                if root.lang-offer-native != "": Text {
+                    text: root.lang-offer-native;
+                    wrap: word-wrap;
+                }
+                Text {
+                    text: Tr.fmt("lang_offer.text", root.lang-offer-name, Tr.revision);
+                    wrap: word-wrap;
+                    opacity: root.lang-offer-native != "" ? 0.7 : 1.0;
+                }
+                HorizontalBox {
+                    padding: 0;
+                    alignment: end;
+                    Button {
+                        text: Tr.get("lang_offer.stay", Tr.revision);
+                        clicked => { root.lang-offer-stay(); }
+                    }
+                    Button {
+                        text: Tr.fmt("lang_offer.download", root.lang-offer-name, Tr.revision);
+                        primary: true;
+                        clicked => {
+                            root.lang-offer = false;
+                            root.install-language(root.lang-offer-code);
+                        }
                     }
                 }
             }

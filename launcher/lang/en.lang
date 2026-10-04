@@ -13,14 +13,14 @@ main.refresh = Refresh
 main.loading = Loading…
 main.install_plugin = Install plugin
 main.installing = Installing…
-main.host_placeholder = Hostname or IP + Enter (empty = server from the game .exe)
-main.add = Add
-main.remove = Remove
+main.host_placeholder = Hostname or IP, Enter = select (empty = server from the game .exe)
+main.add_to_list = Add to list
+main.remove_from_list = Remove from list
 main.start_game = Start game
 row.online = {0} online
 row.checking = checking…
 row.offline = offline
-row.custom = custom
+row.custom = in your list
 
 ; --- Menu ---
 menu.file = File
@@ -72,6 +72,8 @@ ping.enable = Switch on now
 settings.title = Settings
 settings.start_command = Start command
 settings.start_command_placeholder = Empty = automatic
+settings.start_command_hint_windows = Usually not needed: empty starts the selected speed*.exe directly. Only for starting the game through another program, {exe} = the selected speed*.exe (appended if missing), e.g. C:\Tools\tool.exe {exe}
+settings.start_command_hint_linux = Usually not needed: empty starts the game with Wine or the Lutris settings (see below). {exe} = the selected speed*.exe (appended if missing), e.g. gamemoderun wine or WINEPREFIX=~/Games/nfsu wine
 settings.launch_auto = Automatic: {0}, the game folder's DLLs loaded first.
 settings.launch_lutris = Automatic: settings of the Lutris game "{0}" ({1}).
 settings.system_wine = system Wine
@@ -128,6 +130,8 @@ msg.launcher_updated = Launcher {0} installed - restarting…
 msg.launcher_update_failed = Launcher update failed: {0}
 msg.could_not_open = Could not open {0}: {1}
 msg.could_not_write = Could not write {0}: {1}
+msg.added_to_list = {0} is now in your list and always shown, even when offline.
+msg.removed_from_list = {0} is no longer in your list.
 msg.started = Started {0}.
 msg.game_running = {0} is already running.
 msg.could_not_start = Could not start {0}: {1}
@@ -144,3 +148,8 @@ host.invalid_ip = Not a valid IP address.
 host.empty_part = Empty part between dots.
 host.label_too_long = A part between dots is longer than 63 characters.
 host.dash = A part can't start or end with '-'.
+
+; --- First start: the system's language is available for download ---
+lang_offer.text = The launcher is also available in {0}. Download it?
+lang_offer.download = Download {0}
+lang_offer.stay = Stay in English

@@ -76,6 +76,8 @@ branch, read live via the GitHub API) and installs, updates or removes them in t
 `scripts/lang` folder; installing switches to it right away. A file pushed there shows up for
 everyone without a launcher release; a changed one is offered as an update. The choice is
 stored as `[Settings] Language`; without it the system language is used if it's installed.
+If it isn't, but this repo has it, the launcher offers to download it at start (**Stay in
+English** saves `Language = en`, so it doesn't ask again).
 `lang/en.lang` is the template for new translations - copy it, set `Language` to the
 language's own name and translate the texts; missing lines stay English. `cargo test` checks
 that every file in `lang/` has all keys and placeholders.

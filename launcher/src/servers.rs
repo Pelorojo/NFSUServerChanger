@@ -3,7 +3,7 @@
 
 use std::fs;
 use std::io::{Read, Write};
-use std::net::{Ipv4Addr, SocketAddr, TcpStream, ToSocketAddrs};
+use std::net::{Ipv4Addr, SocketAddr, TcpStream, ToSocketAddrs, UdpSocket};
 use std::path::Path;
 use std::time::Duration;
 
@@ -14,8 +14,11 @@ use crate::Server;
 pub const CACHE_NAME: &str = "servers.cache";
 // Lobby servers answer on this port with their status (same as nfs.onl's servers.php/kickStart use).
 const STATUS_PORT: u16 = 10980;
-// EA Nation has no status port; it echoes an "@tic" packet on this one.
+// EA Nation accepts connections on the status port but never answers there; it echoes an
+// "@tic" packet on this one.
 const EA_NATION_PORT: u16 = 5000;
+// The hole punching rendezvous service of nfsuinfoserver (UDP, on the lobby server's IP).
+const HOLE_PUNCH_PORT: u16 = 10910;
 
 /// One server as known from the cache or a direct query.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -27,6 +30,9 @@ pub struct Entry {
     pub has_stats: bool,
     pub reachable: bool,
     pub ea_nation: bool,
+    /// Has the hole punching rendezvous service (players behind NAT can host).
+    #[serde(default)]
+    pub hole_punch: bool,
     /// Only in the list because of servers.dat - not written to the cache.
     #[serde(skip)]
     pub custom_only: bool,
@@ -214,12 +220,14 @@ pub fn probe(mut entry: Entry) -> Entry {
     if let Some(result @ (EaProbe::Echo | EaProbe::NoReply)) = known_ea {
         entry.reachable = result == EaProbe::Echo;
         entry.has_stats = false;
+        entry.hole_punch = false;
     } else if let Some((title, online)) = probe_status(&entry.host) {
         entry.title = title;
         entry.online = online;
         entry.has_stats = true;
         entry.reachable = true;
         entry.ea_nation = false;
+        entry.hole_punch = probe_hole_punch(&entry.host);
     } else {
         // No status port: maybe an EA Nation server (same fallback as kickStart).
         let result = if known_ea.is_some() {
@@ -231,6 +239,9 @@ pub fn probe(mut entry: Entry) -> Entry {
         entry.ea_nation = result != EaProbe::NoConnection;
         entry.reachable = result == EaProbe::Echo;
         entry.has_stats = false;
+        if entry.ea_nation {
+            entry.hole_punch = false;
+        }
     }
     entry
 }
@@ -250,6 +261,7 @@ pub fn merge_custom(known: &[Entry], custom: &[String]) -> Vec<Server> {
             online: entry.online,
             has_stats: entry.has_stats,
             reachable: entry.reachable,
+            hole_punch: entry.hole_punch,
             custom: custom_host.is_some(),
             checking: entry.pending,
         });
@@ -322,6 +334,27 @@ fn probe_ea_nation(host: &str) -> EaProbe {
         EaProbe::Echo
     } else {
         EaProbe::NoReply
+    }
+}
+
+/// Asks the hole punching rendezvous service about an unknown player: a server that has it
+/// answers "NHP1 NONE ...".
+fn probe_hole_punch(host: &str) -> bool {
+    let Some(addr) = resolve(host, HOLE_PUNCH_PORT) else {
+        return false;
+    };
+    let Ok(socket) = UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0)) else {
+        return false;
+    };
+    if socket.set_read_timeout(Some(Duration::from_secs(2))).is_err()
+        || socket.send_to(b"NHP1 QUERY 192.0.2.1 launcher", addr).is_err()
+    {
+        return false;
+    }
+    let mut reply = [0u8; 256];
+    match socket.recv_from(&mut reply) {
+        Ok((n, from)) => from.ip() == addr.ip() && reply[..n].starts_with(b"NHP1 "),
+        Err(_) => false,
     }
 }
 

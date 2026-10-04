@@ -411,6 +411,17 @@ pub fn launch_info(_game_dir: &Path) -> String {
     String::new()
 }
 
+/// What can go into the start command, with examples for this system.
+#[cfg(not(windows))]
+pub fn command_hint() -> String {
+    crate::i18n::t("settings.start_command_hint_linux")
+}
+
+#[cfg(windows)]
+pub fn command_hint() -> String {
+    crate::i18n::t("settings.start_command_hint_windows")
+}
+
 /// WINEDLLOVERRIDES for the game folder's DLLs ("native,builtin") merged with `extra`
 /// (dll -> mode, e.g. from Lutris), which wins for the same DLL.
 #[cfg_attr(windows, allow(dead_code))]

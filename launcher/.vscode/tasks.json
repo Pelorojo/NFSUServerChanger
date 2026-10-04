@@ -1,0 +1,26 @@
+{
+    // Ctrl+Shift+B runs the default build task; the others via "Terminal > Run Task...".
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build (release)",
+            "type": "shell",
+            "command": "cargo build --release",
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": ["$rustc"]
+        },
+        {
+            "label": "Run",
+            "type": "shell",
+            "command": "cargo run --release",
+            "problemMatcher": ["$rustc"]
+        },
+        {
+            "label": "Test",
+            "type": "shell",
+            "command": "cargo test",
+            "group": "test",
+            "problemMatcher": ["$rustc"]
+        }
+    ]
+}

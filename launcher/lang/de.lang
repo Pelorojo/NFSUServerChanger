@@ -1,0 +1,143 @@
+; NFSU Server Changer Launcher - Sprachdatei Deutsch
+; Vorlage und Erklärung: siehe en.lang
+
+Language = Deutsch
+
+; --- Hauptfenster ---
+main.current_server = Aktueller Server: {0}
+main.exe_server = Server aus der Spiel-.exe
+main.refresh = Aktualisieren
+main.loading = Lädt…
+main.install_plugin = Plugin installieren
+main.installing = Installiere…
+main.host_placeholder = Hostname oder IP + Enter (leer = Server aus der Spiel-.exe)
+main.add = Hinzufügen
+main.remove = Entfernen
+main.start_game = Spiel starten
+row.online = {0} online
+row.checking = wird geprüft…
+row.offline = offline
+row.custom = eigener
+
+; --- Menü ---
+menu.file = Datei
+menu.open_game_folder = Spielordner öffnen
+menu.edit_ini = NFSUServerChanger.ini bearbeiten
+menu.edit_trax = NFSUServerChangerTrax.csv bearbeiten
+menu.edit_servers = servers.dat bearbeiten
+menu.exit = Beenden
+menu.server = Server
+menu.refresh = Aktualisieren
+menu.use_original = Original-EA-Server verwenden (ps2nfs04.ea.com)
+menu.use_exe_server = Server aus der Spiel-.exe verwenden
+menu.community = Community
+menu.check_updates = Nach Updates suchen
+menu.language = Sprache
+menu.download_languages = Sprachen herunterladen…
+menu.settings = Einstellungen…
+menu.help = Hilfe
+menu.about = Über
+
+; --- Probleme (oben angezeigt) ---
+problem.not_in_game_folder = Der Launcher ist nicht im Spielordner (keine speed*.exe, kein scripts-Ordner)
+problem.plugin_not_installed = Plugin nicht installiert: {0} und {1} fehlen
+problem.plugin_missing = Plugin fehlt: {0} - der gewählte Server hat keine Wirkung
+
+; --- Dialog "Trotzdem starten?" ---
+start_anyway.title = Plugin nicht installiert
+start_anyway.text = {0}.\n\nDas Spiel verbindet sich mit dem Server aus seiner .exe (ursprünglich ps2nfs04.ea.com, längst offline). Trotzdem starten?
+start_anyway.cancel = Abbrechen
+start_anyway.start = Trotzdem starten
+
+; --- Administratorrechte (Windows) ---
+admin.title = Administratorrechte nötig
+admin.text = Der Launcher kann nicht in den Spielordner schreiben (z. B. weil das Spiel unter C:\Program Files liegt). Ohne das lässt sich der Server nicht ändern und das Plugin nicht installieren oder aktualisieren.
+admin.continue = Weiter
+admin.restart = Als Administrator neu starten
+ping.title = Pings einschalten?
+ping.text = Das Spiel läuft auch ohne, aber seine Pings zu den Servern funktionieren nicht: Linux erlaubt sie noch nicht. "Jetzt einschalten" führt diesen Befehl als Administrator aus (dein System fragt nach deinem Passwort):
+ping.copy = Kopieren
+ping.manual = Oder führe ihn selbst in einem Terminal aus. Braucht Wine 7.13 oder neuer.
+ping.busy = Warte auf das Passwort...
+ping.failed = Hat nicht geklappt: {0}
+ping.cancelled = abgebrochen
+ping.dont_ask = Nicht mehr fragen
+ping.later = Später
+ping.enable = Jetzt einschalten
+
+; --- Einstellungen ---
+settings.title = Einstellungen
+settings.start_command = Startbefehl
+settings.start_command_placeholder = Leer = automatisch
+settings.launch_auto = Automatisch: {0}, die DLLs des Spielordners werden zuerst geladen.
+settings.launch_lutris = Automatisch: Einstellungen des Lutris-Spiels "{0}" ({1}).
+settings.system_wine = System-Wine
+settings.wine_missing = Wine nicht gefunden - installiere es oder gib einen Startbefehl an.
+settings.ping = Pings
+settings.ping_on = An.
+settings.ping_off = Aus: Das Spiel läuft, aber seine Pings zu den Servern laufen ins Leere.
+settings.ping_old_wine = Mit {0} nicht möglich: Braucht Wine 7.13 oder neuer. Das Spiel läuft trotzdem, nur die Pings laufen ins Leere.
+settings.ping_enable = Einschalten...
+settings.public_lists = Öffentliche Serverlisten
+settings.no_public_lists = Keine in [PublicList] der NFSUServerChanger.ini.
+settings.editor = Editor
+settings.editor_placeholder = Leer = Standard-Texteditor
+settings.editor_hint = Befehl für die Bearbeiten-Einträge, {file} = die Datei (wird angehängt, wenn es fehlt), z. B. notepad++ oder code -n {file}
+settings.cancel = Abbrechen
+settings.save = Speichern
+
+; --- Sprachen herunterladen ---
+langs.title = Sprachen herunterladen
+langs.hint = Übersetzungen von GitHub, gespeichert im Spielordner unter "scripts\lang".
+langs.loading = Lade die Liste…
+langs.failed = Liste konnte nicht geladen werden: {0}
+langs.none = Keine Sprachen gefunden.
+langs.install = Installieren
+langs.update = Aktualisieren
+langs.remove = Entfernen
+langs.close = Schließen
+
+; --- Updates ---
+updates.title = Updates verfügbar
+updates.plugin = Plugin {0}
+updates.launcher = Launcher {0}
+updates.restart_hint = Der Launcher startet nach dem Update von selbst neu.
+updates.later = Später
+updates.update = Aktualisieren
+
+; --- Über ---
+about.project_page = Projektseite
+about.close = Schließen
+
+; --- Statuszeile ---
+status.online = {0} Server online.
+status.checking = Prüfe {0} Server…
+
+; --- Meldungen ---
+msg.checking_updates = Suche nach Updates…
+msg.up_to_date = Alles ist aktuell.
+msg.update_check_failed = Update-Prüfung fehlgeschlagen: {0}
+msg.downloading_plugin = Lade Plugin…
+msg.plugin_installed = Plugin {0} installiert.
+msg.install_failed = Plugin-Installation fehlgeschlagen: {0}
+msg.downloading_launcher = Lade Launcher {0}…
+msg.launcher_updated = Launcher {0} installiert - starte neu…
+msg.launcher_update_failed = Launcher-Update fehlgeschlagen: {0}
+msg.could_not_open = Konnte {0} nicht öffnen: {1}
+msg.could_not_write = Konnte {0} nicht schreiben: {1}
+msg.started = {0} gestartet.
+msg.game_running = {0} läuft bereits.
+msg.could_not_start = Konnte {0} nicht starten: {1}
+msg.admin_failed = Neustart als Administrator fehlgeschlagen: {0}
+msg.ping_enabled = Pings eingeschaltet.
+msg.wine_not_found = wine nicht gefunden - installiere es oder gib in den Einstellungen einen Startbefehl an
+msg.no_plugin_release = kein Plugin-Release gefunden
+msg.download_corrupted = Download beschädigt (SHA-256 stimmt nicht)
+
+; --- Hostname-Prüfung ---
+host.invalid_chars = Nur Buchstaben, Ziffern, '.' und '-' sind erlaubt.
+host.too_long = Zu lang (max. {0} Zeichen).
+host.invalid_ip = Keine gültige IP-Adresse.
+host.empty_part = Leerer Teil zwischen Punkten.
+host.label_too_long = Ein Teil zwischen Punkten ist länger als 63 Zeichen.
+host.dash = Ein Teil darf nicht mit '-' beginnen oder enden.

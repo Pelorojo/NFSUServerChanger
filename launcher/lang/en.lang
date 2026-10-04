@@ -1,0 +1,146 @@
+; NFSU Server Changer launcher - language file
+; English is built into the launcher; this file is the template for translations.
+; To translate: copy it to <code>.lang (e.g. de.lang) in the game's "scripts\lang" folder,
+; change "Language" to the language's own name and translate the texts after "=".
+; {0}, {1} are filled in by the launcher; \n is a line break. Missing lines stay English.
+
+Language = English
+
+; --- Main window ---
+main.current_server = Current server: {0}
+main.exe_server = server from the game .exe
+main.refresh = Refresh
+main.loading = Loading…
+main.install_plugin = Install plugin
+main.installing = Installing…
+main.host_placeholder = Hostname or IP + Enter (empty = server from the game .exe)
+main.add = Add
+main.remove = Remove
+main.start_game = Start game
+row.online = {0} online
+row.checking = checking…
+row.offline = offline
+row.custom = custom
+
+; --- Menu ---
+menu.file = File
+menu.open_game_folder = Open game folder
+menu.edit_ini = Edit NFSUServerChanger.ini
+menu.edit_trax = Edit NFSUServerChangerTrax.csv
+menu.edit_servers = Edit servers.dat
+menu.exit = Exit
+menu.server = Server
+menu.refresh = Refresh
+menu.use_original = Use original EA server (ps2nfs04.ea.com)
+menu.use_exe_server = Use server from the game .exe
+menu.community = Community
+menu.check_updates = Check for updates
+menu.language = Language
+menu.download_languages = Download languages…
+menu.settings = Settings…
+menu.help = Help
+menu.about = About
+
+; --- Problems (shown at the top) ---
+problem.not_in_game_folder = Launcher is not in the game folder (no speed*.exe, no scripts folder)
+problem.plugin_not_installed = Plugin not installed: {0} and {1} missing
+problem.plugin_missing = Plugin missing: {0} - the selected server has no effect
+
+; --- "Start anyway?" dialog ---
+start_anyway.title = Plugin not installed
+start_anyway.text = {0}.\n\nThe game will connect to the server built into its .exe (originally ps2nfs04.ea.com, long offline). Start anyway?
+start_anyway.cancel = Cancel
+start_anyway.start = Start anyway
+
+; --- Administrator rights (Windows) ---
+admin.title = Administrator rights needed
+admin.text = The launcher can't write to the game folder (e.g. because the game is in C:\Program Files). Without that, the server can't be changed and the plugin can't be installed or updated.
+admin.continue = Continue
+admin.restart = Restart as administrator
+ping.title = Switch on pings?
+ping.text = The game runs without it, but its pings to the servers don't work: Linux doesn't allow them yet. "Switch on now" runs this command as administrator (your system asks for your password):
+ping.copy = Copy
+ping.manual = Or run it yourself in a terminal. Needs Wine 7.13 or newer.
+ping.busy = Waiting for the password...
+ping.failed = Didn't work: {0}
+ping.cancelled = cancelled
+ping.dont_ask = Don't ask again
+ping.later = Later
+ping.enable = Switch on now
+
+; --- Settings ---
+settings.title = Settings
+settings.start_command = Start command
+settings.start_command_placeholder = Empty = automatic
+settings.launch_auto = Automatic: {0}, the game folder's DLLs loaded first.
+settings.launch_lutris = Automatic: settings of the Lutris game "{0}" ({1}).
+settings.system_wine = system Wine
+settings.wine_missing = Wine not found - install it or set a start command.
+settings.ping = Pings
+settings.ping_on = On.
+settings.ping_off = Off: the game runs, but its pings to the servers time out.
+settings.ping_old_wine = Not possible with {0}: needs Wine 7.13 or newer. The game runs anyway, its pings just time out.
+settings.ping_enable = Switch on...
+settings.public_lists = Public server lists
+settings.no_public_lists = None in [PublicList] of NFSUServerChanger.ini.
+settings.editor = Editor
+settings.editor_placeholder = Empty = default text editor
+settings.editor_hint = Command for the Edit entries, {file} = the file (appended if missing), e.g. notepad++ or code -n {file}
+settings.cancel = Cancel
+settings.save = Save
+
+; --- Download languages ---
+langs.title = Download languages
+langs.hint = Translations from GitHub, saved in the game's "scripts\lang" folder.
+langs.loading = Loading the list…
+langs.failed = Could not load the list: {0}
+langs.none = No languages found.
+langs.install = Install
+langs.update = Update
+langs.remove = Remove
+langs.close = Close
+
+; --- Updates ---
+updates.title = Updates available
+updates.plugin = Plugin {0}
+updates.launcher = Launcher {0}
+updates.restart_hint = The launcher restarts by itself after the update.
+updates.later = Later
+updates.update = Update
+
+; --- About ---
+about.project_page = Project page
+about.close = Close
+
+; --- Status line ---
+status.online = {0} servers online.
+status.checking = Checking {0} server(s)…
+
+; --- Messages ---
+msg.checking_updates = Checking for updates…
+msg.up_to_date = Everything is up to date.
+msg.update_check_failed = Could not check for updates: {0}
+msg.downloading_plugin = Downloading plugin…
+msg.plugin_installed = Plugin {0} installed.
+msg.install_failed = Plugin installation failed: {0}
+msg.downloading_launcher = Downloading launcher {0}…
+msg.launcher_updated = Launcher {0} installed - restarting…
+msg.launcher_update_failed = Launcher update failed: {0}
+msg.could_not_open = Could not open {0}: {1}
+msg.could_not_write = Could not write {0}: {1}
+msg.started = Started {0}.
+msg.game_running = {0} is already running.
+msg.could_not_start = Could not start {0}: {1}
+msg.admin_failed = Could not restart as administrator: {0}
+msg.ping_enabled = Pings switched on.
+msg.wine_not_found = wine not found - install it, or set a start command in the settings
+msg.no_plugin_release = no plugin release found
+msg.download_corrupted = download corrupted (SHA-256 mismatch)
+
+; --- Hostname check ---
+host.invalid_chars = Only letters, digits, '.' and '-' are allowed.
+host.too_long = Too long (max. {0} characters).
+host.invalid_ip = Not a valid IP address.
+host.empty_part = Empty part between dots.
+host.label_too_long = A part between dots is longer than 63 characters.
+host.dash = A part can't start or end with '-'.

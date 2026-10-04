@@ -2,6 +2,7 @@
 #define INIREADER_H
 #include "ini_parser.hpp"
 #include <string>
+#include <cstring>
 #include <Windows.h>
 
 /*
@@ -222,7 +223,7 @@ public:
 
     char* ReadString(char* szSection, char* szKey, const char* szDefaultValue)
     {
-        char* szResult = new char[255];
+        // Buffers sized to the value (a fixed 255 bytes overflowed on long values).
         try {
             auto& config = data[szSection];
             if (config.count(szKey))
@@ -233,11 +234,13 @@ public:
                 if (config[szKey].at(config[szKey].size() - 1) == '\"' || config[szKey].at(config[szKey].size() - 1) == '\'')
                     config[szKey].erase(config[szKey].size() - 1);
 
+                char* szResult = new char[config[szKey].size() + 1];
                 strcpy(szResult, config[szKey].c_str());
                 return szResult;
             }
         }
         catch (...) { }
+        char* szResult = new char[strlen(szDefaultValue) + 1];
         strcpy(szResult, szDefaultValue);
         return szResult;
     }

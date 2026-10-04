@@ -1,0 +1,817 @@
+import { Button, CheckBox, ComboBox, LineEdit, ListView, VerticalBox, HorizontalBox, Palette } from "std-widgets.slint";
+
+// Translations: texts come from the language files via Rust; `revision` is bumped on a
+// language change, so every binding using it is evaluated again.
+export global Tr {
+    in property <int> revision;
+    pure callback get(string, int) -> string;
+    // {0} replaced by the second argument.
+    pure callback fmt(string, string, int) -> string;
+}
+
+export struct LanguageItem {
+    code: string,
+    name: string,
+    current: bool,
+}
+
+// A translation on GitHub, in the download popup.
+export struct LangPackage {
+    code: string,
+    name: string,
+    installed: bool,
+    // Installed, but the file differs from the one on GitHub.
+    update: bool,
+}
+
+export struct Server {
+    host: string,
+    title: string,
+    online: int,
+    has-stats: bool,
+    reachable: bool,
+    custom: bool,
+    checking: bool,
+}
+
+// A checkbox whose label wraps: CheckBox's own text stays on one line and runs out of the
+// popup when it's long (texts get longer in some languages). Clicking the label toggles too.
+component WrapCheckBox {
+    in property <string> text;
+    in-out property <bool> checked;
+    callback toggled(bool);
+
+    HorizontalLayout {
+        spacing: 6px;
+        box := CheckBox {
+            checked <=> root.checked;
+            toggled => { root.toggled(self.checked); }
+        }
+        label := Text {
+            text: root.text;
+            wrap: word-wrap;
+            vertical-alignment: center;
+            horizontal-stretch: 1;
+            TouchArea {
+                clicked => {
+                    root.checked = !root.checked;
+                    root.toggled(root.checked);
+                }
+            }
+        }
+    }
+}
+
+component ServerRow inherits Rectangle {
+    in property <Server> server;
+    in property <bool> selected;
+    callback clicked();
+
+    height: 60px;
+    border-radius: 6px;
+    background: root.selected ? Palette.selection-background
+        : touch.has-hover ? Palette.alternate-background : transparent;
+
+    touch := TouchArea {
+        clicked => { root.clicked(); }
+    }
+
+    HorizontalLayout {
+        padding-left: 10px;
+        padding-right: 10px;
+        spacing: 10px;
+
+        VerticalLayout {
+            alignment: center;
+            horizontal-stretch: 1;
+            Text {
+                text: root.server.title == "" ? root.server.host : root.server.title;
+                font-weight: 600;
+                overflow: elide;
+                color: root.selected ? Palette.selection-foreground : Palette.foreground;
+                opacity: root.server.reachable && !root.server.checking ? 1.0 : 0.5;
+            }
+            Text {
+                text: root.server.host
+                    + (root.server.checking ? "  ·  " + Tr.get("row.checking", Tr.revision) : root.server.reachable ? "" : "  ·  " + Tr.get("row.offline", Tr.revision))
+                    + (root.server.custom ? "  ·  " + Tr.get("row.custom", Tr.revision) : "");
+                font-size: 13px;
+                overflow: elide;
+                color: root.selected ? Palette.selection-foreground : Palette.foreground;
+                opacity: 0.6;
+            }
+        }
+
+        if root.server.has-stats: Text {
+            vertical-alignment: center;
+            horizontal-alignment: right;
+            text: Tr.fmt("row.online", root.server.online, Tr.revision);
+            color: root.selected ? Palette.selection-foreground : Palette.foreground;
+        }
+    }
+}
+
+export struct PublicList {
+    name: string,
+    url: string,
+    enabled: bool,
+}
+
+export struct Link {
+    name: string,
+    url: string,
+}
+
+export component AppWindow inherits Window {
+    title: "NFSU Server Changer";
+    // Set at runtime from the game folder's NFSU_icon.ico, if present.
+    in property <image> window-icon;
+    icon: root.window-icon;
+    default-font-size: 15px;
+    preferred-width: 640px;
+    preferred-height: 540px;
+    min-width: 420px;
+    min-height: 320px;
+
+    in property <[Server]> servers;
+    in property <string> current-host;
+    // Server count / checking progress, updated by every fetch step.
+    in property <string> status;
+    // Result of the last action (install, start, errors); not overwritten by the fetch.
+    in property <string> message;
+    in property <bool> loading;
+    in property <bool> ini-found;
+    // Set when the plugin isn't (fully) installed; shown instead of the current server.
+    in property <string> problem;
+    // Plugin install / update from GitHub
+    in property <bool> can-install;
+    in property <bool> installing;
+    in property <string> plugin-update;
+    // A newer launcher on GitHub (not installed yet) / installed, restart pending (waits for
+    // a running plugin installation).
+    in property <string> launcher-update;
+    in property <string> launcher-restart;
+    // Whether host-input is in servers.dat (kept up to date by host-changed).
+    in property <bool> input-is-custom;
+    // Why host-input isn't a valid hostname/IP; empty when it's fine.
+    in property <string> host-error;
+    // speed*.exe found in the game folder.
+    in property <[string]> games;
+    // Community menu, from [Community] in NFSUServerChanger.ini.
+    in property <[Link]> community-links;
+    // Help menu, from [Help] in NFSUServerChanger.ini.
+    in property <[Link]> help-links;
+    // Language menu: English plus the lang/*.lang files found.
+    in property <[LanguageItem]> languages;
+    // Language download popup
+    in property <[LangPackage]> lang-packages;
+    in property <bool> langs-loading;
+    in property <string> langs-error;
+    in property <string> version;
+    in property <bool> trax-found;
+    // Settings popup
+    in-out property <string> settings-editor;
+    in-out property <string> settings-command;
+    // How the game starts without a custom command (Linux: Wine / Lutris settings).
+    in property <string> settings-launch-info;
+    // Linux: whether the game's pings work; empty on Windows.
+    in property <string> settings-ping-info;
+    in property <bool> settings-ping-can-enable;
+    in property <[PublicList]> settings-public-lists;
+    in-out property <int> game-index;
+    in-out property <string> host-input;
+    in-out property <int> selected: -1;
+
+    callback refresh();
+    callback apply(string);
+    callback host-changed(string);
+    callback add-custom(string);
+    callback remove-custom(string);
+    callback start-game(int);
+    callback game-selected(string);
+    // Menu
+    callback open-game-folder();
+    callback edit-ini();
+    callback edit-custom-list();
+    callback open-project-page();
+    callback open-url(string);
+    callback edit-trax();
+    callback open-settings();
+    callback toggle-public-list(int, bool);
+    callback save-settings();
+    callback install-plugin();
+    // Windows: the game folder isn't writable (e.g. under C:\Program Files).
+    in-out property <bool> needs-admin;
+    callback restart-as-admin();
+    // Linux: offer to switch the game's pings on (needs root, via pkexec).
+    in-out property <bool> ping-offer;
+    in property <string> ping-command;
+    in property <bool> ping-busy;
+    in-out property <string> ping-error;
+    callback enable-ping();
+    callback ping-dont-ask();
+    callback reload();
+    callback check-for-updates();
+    callback update-launcher();
+    // Rust: updates found by "Check for updates".
+    public function show-updates() { updates-popup.show(); }
+    callback restart-launcher();
+    callback exit();
+    callback select-language(string);
+    callback open-languages();
+    callback install-language(string);
+    callback remove-language(string);
+
+    changed host-input => { root.host-changed(self.host-input); }
+
+    start-anyway-popup := PopupWindow {
+        x: (root.width - 400px) / 2;
+        y: 80px;
+        width: 400px;
+        close-policy: close-on-click-outside;
+
+        Rectangle {
+            background: Palette.background;
+            border-width: 1px;
+            border-color: Palette.border;
+            border-radius: 8px;
+            drop-shadow-blur: 12px;
+            drop-shadow-color: #00000060;
+
+            VerticalBox {
+                padding: 20px;
+                Text { text: Tr.get("start_anyway.title", Tr.revision); font-size: 18px; font-weight: 700; }
+                Text {
+                    text: Tr.fmt("start_anyway.text", root.problem, Tr.revision);
+                    wrap: word-wrap;
+                }
+                HorizontalBox {
+                    alignment: end;
+                    Button { text: Tr.get("start_anyway.cancel", Tr.revision); clicked => { start-anyway-popup.close(); } }
+                    Button {
+                        text: Tr.get("start_anyway.start", Tr.revision);
+                        clicked => {
+                            start-anyway-popup.close();
+                            root.start-game(root.game-index);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    settings-popup := PopupWindow {
+        x: (root.width - 440px) / 2;
+        y: 40px;
+        width: 440px;
+        close-policy: close-on-click-outside;
+
+        Rectangle {
+            background: Palette.background;
+            border-width: 1px;
+            border-color: Palette.border;
+            border-radius: 8px;
+            drop-shadow-blur: 12px;
+            drop-shadow-color: #00000060;
+
+            VerticalBox {
+                padding: 20px;
+                spacing: 8px;
+                Text { text: Tr.get("settings.title", Tr.revision); font-size: 20px; font-weight: 700; }
+
+                Text { text: Tr.get("settings.editor", Tr.revision); font-weight: 600; }
+                LineEdit {
+                    text <=> root.settings-editor;
+                    placeholder-text: Tr.get("settings.editor_placeholder", Tr.revision);
+                }
+                Text {
+                    text: Tr.get("settings.editor_hint", Tr.revision);
+                    font-size: 13px;
+                    opacity: 0.7;
+                    wrap: word-wrap;
+                }
+
+                Text { text: Tr.get("settings.start_command", Tr.revision); font-weight: 600; }
+                LineEdit {
+                    text <=> root.settings-command;
+                    placeholder-text: Tr.get("settings.start_command_placeholder", Tr.revision);
+                }
+                if root.settings-launch-info != "": Text {
+                    text: root.settings-launch-info;
+                    font-size: 13px;
+                    opacity: 0.7;
+                    wrap: word-wrap;
+                }
+
+                if root.settings-ping-info != "": Text { text: Tr.get("settings.ping", Tr.revision); font-weight: 600; }
+                if root.settings-ping-info != "": HorizontalBox {
+                    padding: 0;
+                    Text {
+                        text: root.settings-ping-info;
+                        font-size: 13px;
+                        opacity: 0.7;
+                        wrap: word-wrap;
+                        vertical-alignment: center;
+                        horizontal-stretch: 1;
+                    }
+                    if root.settings-ping-can-enable: Button {
+                        text: Tr.get("settings.ping_enable", Tr.revision);
+                        clicked => {
+                            settings-popup.close();
+                            root.ping-error = "";
+                            root.ping-offer = true;
+                        }
+                    }
+                }
+
+                Text { text: Tr.get("settings.public_lists", Tr.revision); font-weight: 600; }
+                for list[i] in root.settings-public-lists: WrapCheckBox {
+                    text: list.name + "  (" + list.url + ")";
+                    checked: list.enabled;
+                    toggled => { root.toggle-public-list(i, self.checked); }
+                }
+                if root.settings-public-lists.length == 0: Text {
+                    text: Tr.get("settings.no_public_lists", Tr.revision);
+                    opacity: 0.7;
+                }
+
+                HorizontalBox {
+                    alignment: end;
+                    Button { text: Tr.get("settings.cancel", Tr.revision); clicked => { settings-popup.close(); } }
+                    Button {
+                        text: Tr.get("settings.save", Tr.revision);
+                        primary: true;
+                        clicked => {
+                            root.save-settings();
+                            settings-popup.close();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Offers the updates found (auto update off, or "Check for updates").
+    updates-popup := PopupWindow {
+        x: (root.width - 400px) / 2;
+        y: 40px;
+        width: 400px;
+        close-policy: close-on-click-outside;
+
+        Rectangle {
+            background: Palette.background;
+            border-width: 1px;
+            border-color: Palette.border;
+            border-radius: 8px;
+            drop-shadow-blur: 12px;
+            drop-shadow-color: #00000060;
+
+            VerticalBox {
+                padding: 20px;
+                spacing: 8px;
+                Text { text: Tr.get("updates.title", Tr.revision); font-size: 20px; font-weight: 700; }
+                if root.plugin-update != "": Text { text: Tr.fmt("updates.plugin", root.plugin-update, Tr.revision); }
+                if root.launcher-update != "": Text { text: Tr.fmt("updates.launcher", root.launcher-update, Tr.revision); }
+                if root.launcher-update != "": Text {
+                    text: Tr.get("updates.restart_hint", Tr.revision);
+                    font-size: 13px;
+                    opacity: 0.7;
+                    wrap: word-wrap;
+                }
+                HorizontalBox {
+                    alignment: end;
+                    Button { text: Tr.get("updates.later", Tr.revision); clicked => { updates-popup.close(); } }
+                    Button {
+                        text: Tr.get("updates.update", Tr.revision);
+                        primary: true;
+                        clicked => {
+                            updates-popup.close();
+                            if root.plugin-update != "" { root.install-plugin(); }
+                            if root.launcher-update != "" { root.update-launcher(); }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    languages-popup := PopupWindow {
+        x: (root.width - 400px) / 2;
+        y: 40px;
+        width: 400px;
+        close-policy: close-on-click-outside;
+
+        Rectangle {
+            background: Palette.background;
+            border-width: 1px;
+            border-color: Palette.border;
+            border-radius: 8px;
+            drop-shadow-blur: 12px;
+            drop-shadow-color: #00000060;
+
+            VerticalBox {
+                padding: 20px;
+                spacing: 8px;
+                Text { text: Tr.get("langs.title", Tr.revision); font-size: 20px; font-weight: 700; }
+                Text {
+                    text: Tr.get("langs.hint", Tr.revision);
+                    font-size: 13px;
+                    opacity: 0.7;
+                    wrap: word-wrap;
+                }
+                if root.langs-loading: Text { text: Tr.get("langs.loading", Tr.revision); }
+                if root.langs-error != "": Text {
+                    text: Tr.fmt("langs.failed", root.langs-error, Tr.revision);
+                    color: #d33;
+                    wrap: word-wrap;
+                }
+                if !root.langs-loading && root.langs-error == "" && root.lang-packages.length == 0: Text {
+                    text: Tr.get("langs.none", Tr.revision);
+                    opacity: 0.7;
+                }
+                for lang in root.lang-packages: HorizontalLayout {
+                    spacing: 8px;
+                    Text {
+                        text: lang.name;
+                        vertical-alignment: center;
+                        horizontal-stretch: 1;
+                    }
+                    if !lang.installed || lang.update: Button {
+                        text: lang.installed ? Tr.get("langs.update", Tr.revision) : Tr.get("langs.install", Tr.revision);
+                        primary: !lang.installed;
+                        clicked => { root.install-language(lang.code); }
+                    }
+                    if lang.installed: Button {
+                        text: Tr.get("langs.remove", Tr.revision);
+                        clicked => { root.remove-language(lang.code); }
+                    }
+                }
+                HorizontalBox {
+                    alignment: end;
+                    Button { text: Tr.get("langs.close", Tr.revision); primary: true; clicked => { languages-popup.close(); } }
+                }
+            }
+        }
+    }
+
+    about-popup := PopupWindow {
+        x: (root.width - 360px) / 2;
+        y: 40px;
+        width: 360px;
+        close-policy: close-on-click-outside;
+
+        Rectangle {
+            background: Palette.background;
+            border-width: 1px;
+            border-color: Palette.border;
+            border-radius: 8px;
+            drop-shadow-blur: 12px;
+            drop-shadow-color: #00000060;
+
+            VerticalBox {
+                padding: 20px;
+                spacing: 6px;
+                if root.window-icon.width > 0: Image {
+                    source: root.window-icon;
+                    height: 48px;
+                    image-fit: contain;
+                }
+                Text { text: "NFSU Server Changer"; font-size: 20px; font-weight: 700; horizontal-alignment: center; }
+                Text { text: "Launcher " + root.version; horizontal-alignment: center; opacity: 0.7; }
+                Rectangle { height: 8px; }
+                // Credits stay as they are in every language, so no language file can change them.
+                Text { text: "by redhair@sensiblesoccer.de"; horizontal-alignment: center; }
+                Text { text: "with assistance from Claude (Anthropic)"; horizontal-alignment: center; opacity: 0.7; }
+                Rectangle { height: 8px; }
+                HorizontalBox {
+                    alignment: center;
+                    Button { text: Tr.get("about.project_page", Tr.revision); clicked => { root.open-project-page(); } }
+                    Button { text: Tr.get("about.close", Tr.revision); primary: true; clicked => { about-popup.close(); } }
+                }
+            }
+        }
+    }
+
+    VerticalBox {
+        HorizontalLayout {
+            spacing: 8px;
+            // Hamburger button with the app menu, at the left edge: submenus open to the right,
+            // and on Linux Slint keeps menus inside the window, so on the right edge they'd
+            // be pushed over the main menu.
+            menu-button := Rectangle {
+                width: 34px;
+                height: 30px;
+                border-radius: 6px;
+                background: menu-touch.pressed ? Palette.control-background.darker(0.1)
+                    : menu-touch.has-hover ? Palette.alternate-background : transparent;
+
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 4px;
+                    padding-left: 9px;
+                    padding-right: 9px;
+                    for _ in 3: Rectangle { height: 2px; border-radius: 1px; background: Palette.foreground; }
+                }
+
+                menu-touch := TouchArea {
+                    clicked => { menu-area.show({ x: 0px, y: menu-button.height }); }
+                }
+
+                menu-area := ContextMenuArea {
+                    Menu {
+                        Menu {
+                            title: Tr.get("menu.file", Tr.revision);
+                            MenuItem { title: Tr.get("menu.open_game_folder", Tr.revision); activated => { root.open-game-folder(); } }
+                            MenuItem { title: Tr.get("menu.edit_ini", Tr.revision); enabled: root.ini-found; activated => { root.edit-ini(); } }
+                            MenuItem { title: Tr.get("menu.edit_trax", Tr.revision); enabled: root.trax-found; activated => { root.edit-trax(); } }
+                            MenuItem { title: Tr.get("menu.edit_servers", Tr.revision); activated => { root.edit-custom-list(); } }
+                        }
+                        Menu {
+                            title: Tr.get("menu.server", Tr.revision);
+                            MenuItem { title: Tr.get("menu.refresh", Tr.revision); enabled: !root.loading; activated => { root.refresh(); } }
+                            MenuItem {
+                                title: Tr.get("menu.use_original", Tr.revision);
+                                enabled: root.ini-found;
+                                activated => {
+                                    root.host-input = "ps2nfs04.ea.com";
+                                    root.selected = -1;
+                                    root.apply("ps2nfs04.ea.com");
+                                }
+                            }
+                            MenuItem {
+                                title: Tr.get("menu.use_exe_server", Tr.revision);
+                                enabled: root.ini-found;
+                                activated => {
+                                    root.host-input = "";
+                                    root.selected = -1;
+                                    root.apply("");
+                                }
+                            }
+                        }
+                        if root.community-links.length > 0: Menu {
+                            title: Tr.get("menu.community", Tr.revision);
+                            for link in root.community-links: MenuItem {
+                                title: link.name;
+                                activated => { root.open-url(link.url); }
+                            }
+                        }
+                        MenuSeparator {}
+                        MenuItem {
+                            title: Tr.get("menu.check_updates", Tr.revision);
+                            enabled: !root.installing && root.launcher-restart == "";
+                            activated => { root.check-for-updates(); }
+                        }
+                        MenuItem {
+                            title: Tr.get("menu.settings", Tr.revision);
+                            enabled: root.ini-found;
+                            activated => {
+                                root.open-settings();
+                                settings-popup.show();
+                            }
+                        }
+                        if root.help-links.length > 0: Menu {
+                            title: Tr.get("menu.help", Tr.revision);
+                            for link in root.help-links: MenuItem {
+                                title: link.name;
+                                activated => { root.open-url(link.url); }
+                            }
+                        }
+                        Menu {
+                            title: Tr.get("menu.language", Tr.revision);
+                            for lang in root.languages: MenuItem {
+                                title: (lang.current ? "✓ " : "") + lang.name;
+                                activated => { root.select-language(lang.code); }
+                            }
+                            MenuSeparator {}
+                            MenuItem {
+                                title: Tr.get("menu.download_languages", Tr.revision);
+                                activated => {
+                                    root.open-languages();
+                                    languages-popup.show();
+                                }
+                            }
+                        }
+                        MenuItem { title: Tr.get("menu.about", Tr.revision); activated => { about-popup.show(); } }
+                        // Last item of a hamburger menu, set apart (not under File like in a menu bar).
+                        MenuSeparator {}
+                        MenuItem { title: Tr.get("menu.exit", Tr.revision); activated => { root.exit(); } }
+                    }
+                }
+            }
+            Text {
+                vertical-alignment: center;
+                horizontal-stretch: 1;
+                text: root.problem != "" ? root.problem
+                    : Tr.fmt("main.current_server", root.current-host == "" ? Tr.get("main.exe_server", Tr.revision) : root.current-host, Tr.revision);
+                color: root.problem != "" ? #f85149 : Palette.foreground;
+                wrap: word-wrap;
+                overflow: elide;
+            }
+            if root.problem != "" && root.can-install: Button {
+                text: root.installing ? Tr.get("main.installing", Tr.revision) : Tr.get("main.install_plugin", Tr.revision);
+                enabled: !root.installing;
+                clicked => { root.install-plugin(); }
+            }
+            Button {
+                text: root.loading ? Tr.get("main.loading", Tr.revision) : Tr.get("main.refresh", Tr.revision);
+                enabled: !root.loading;
+                clicked => { root.refresh(); }
+            }
+        }
+
+        Rectangle {
+            vertical-stretch: 1;
+            border-width: 1px;
+            border-color: Palette.border;
+            border-radius: 6px;
+
+            ListView {
+                for server[i] in root.servers: ServerRow {
+                    server: server;
+                    selected: i == root.selected;
+                    // Selecting a server sets it right away.
+                    clicked => {
+                        root.selected = i;
+                        root.host-input = server.host;
+                        root.apply(server.host);
+                    }
+                }
+            }
+        }
+
+        HorizontalLayout {
+            spacing: 8px;
+            input := LineEdit {
+                horizontal-stretch: 1;
+                placeholder-text: Tr.get("main.host_placeholder", Tr.revision);
+                text <=> root.host-input;
+                edited => { root.selected = -1; }
+                accepted => { root.apply(self.text); }
+            }
+            if root.host-input != "": Button {
+                text: Tr.get("main.add", Tr.revision);
+                enabled: !root.input-is-custom && root.host-error == "";
+                clicked => { root.add-custom(input.text); }
+            }
+            if root.host-input != "": Button {
+                text: Tr.get("main.remove", Tr.revision);
+                enabled: root.input-is-custom;
+                clicked => { root.remove-custom(input.text); }
+            }
+        }
+
+        if root.host-error != "": Text {
+            text: root.host-error;
+            color: #f85149;
+            font-size: 13px;
+        }
+
+        if root.games.length > 0: HorizontalLayout {
+            spacing: 8px;
+            game := ComboBox {
+                horizontal-stretch: 1;
+                model: root.games;
+                current-index <=> root.game-index;
+                selected(name) => { root.game-selected(name); }
+            }
+            Button {
+                text: Tr.get("main.start_game", Tr.revision);
+                primary: true;
+                clicked => {
+                    if root.problem != "" {
+                        start-anyway-popup.show();
+                    } else {
+                        root.start-game(game.current-index);
+                    }
+                }
+            }
+        }
+
+        Text {
+            text: root.message != "" ? root.status + "  ·  " + root.message : root.status;
+            font-size: 13px;
+            opacity: 0.7;
+            wrap: word-wrap;
+        }
+    }
+
+    // Shown above everything while the game folder isn't writable.
+    if root.needs-admin: Rectangle {
+        x: 0;
+        y: 0;
+        width: root.width;
+        height: root.height;
+        background: #00000080;
+
+        // Blocks clicks on the window behind.
+        TouchArea { }
+
+        Rectangle {
+            x: (parent.width - self.width) / 2;
+            y: 80px;
+            width: 440px;
+            height: admin-box.preferred-height;
+            background: Palette.background;
+            border-width: 1px;
+            border-color: Palette.border;
+            border-radius: 8px;
+
+            admin-box := VerticalBox {
+                padding: 20px;
+                Text { text: Tr.get("admin.title", Tr.revision); font-size: 18px; font-weight: 700; }
+                Text {
+                    text: Tr.get("admin.text", Tr.revision);
+                    wrap: word-wrap;
+                }
+                HorizontalBox {
+                    alignment: end;
+                    Button { text: Tr.get("admin.continue", Tr.revision); clicked => { root.needs-admin = false; } }
+                    Button {
+                        text: Tr.get("admin.restart", Tr.revision);
+                        primary: true;
+                        clicked => { root.restart-as-admin(); }
+                    }
+                }
+            }
+        }
+    }
+
+    // Linux: offer to switch the game's pings on (at start, or from the settings).
+    if root.ping-offer: Rectangle {
+        x: 0;
+        y: 0;
+        width: root.width;
+        height: root.height;
+        background: #00000080;
+
+        // Blocks clicks on the window behind.
+        TouchArea { }
+
+        Rectangle {
+            x: (parent.width - self.width) / 2;
+            y: 60px;
+            width: min(540px, root.width - 32px);
+            height: ping-box.preferred-height;
+            background: Palette.background;
+            border-width: 1px;
+            border-color: Palette.border;
+            border-radius: 8px;
+
+            ping-box := VerticalBox {
+                padding: 20px;
+                Text { text: Tr.get("ping.title", Tr.revision); font-size: 18px; font-weight: 700; }
+                Text {
+                    text: Tr.get("ping.text", Tr.revision);
+                    wrap: word-wrap;
+                }
+                HorizontalBox {
+                    padding: 0;
+                    ping-command := LineEdit {
+                        text: root.ping-command;
+                        read-only: true;
+                        font-size: 12px;
+                    }
+                    Button {
+                        text: Tr.get("ping.copy", Tr.revision);
+                        clicked => {
+                            ping-command.select-all();
+                            ping-command.copy();
+                        }
+                    }
+                }
+                Text {
+                    text: Tr.get("ping.manual", Tr.revision);
+                    font-size: 13px;
+                    opacity: 0.7;
+                    wrap: word-wrap;
+                }
+                if root.ping-busy: Text { text: Tr.get("ping.busy", Tr.revision); }
+                if root.ping-error != "": Text {
+                    text: root.ping-error;
+                    color: #f85149;
+                    wrap: word-wrap;
+                }
+                HorizontalBox {
+                    padding: 0;
+                    Button {
+                        text: Tr.get("ping.dont_ask", Tr.revision);
+                        enabled: !root.ping-busy;
+                        clicked => { root.ping-dont-ask(); }
+                    }
+                    Rectangle { horizontal-stretch: 1; }
+                    Button {
+                        text: Tr.get("ping.later", Tr.revision);
+                        enabled: !root.ping-busy;
+                        clicked => { root.ping-offer = false; }
+                    }
+                    Button {
+                        text: Tr.get("ping.enable", Tr.revision);
+                        primary: true;
+                        enabled: !root.ping-busy;
+                        clicked => { root.enable-ping(); }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,38 @@
+[package]
+name = "nfsu-server-changer-launcher"
+version = "1.0.0+1000"
+edition = "2021"
+description = "Launcher for NFSUServerChanger: pick an NFSU online server and start the game"
+
+[[bin]]
+name = "NFSUServerChanger"
+path = "src/main.rs"
+
+[dependencies]
+# unstable-winit-030: to bring the window to front when a second launcher is started (Linux).
+slint = { version = "1", features = ["unstable-winit-030"] }
+# Only to switch on .ico decoding in the image crate Slint already uses (for NFSU_icon.ico).
+image = { version = "0.25", default-features = false, features = ["ico"] }
+ureq = "3"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
+sha2 = "0.11.0"
+sys-locale = "0.3.2"
+# Launcher self-update: the Linux release is a .tar.gz.
+tar = { version = "0.4.46", default-features = false }
+flate2 = "1.1.10"
+
+[build-dependencies]
+slint-build = "1"
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true
+
+[target."cfg(not(windows))".dependencies]
+yaml-rust2 = "0.13.0"
+
+[target."cfg(windows)".dependencies]
+windows-sys = { version = "0.61.2", features = ["Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_Foundation", "Win32_System_Threading", "Win32_System_Diagnostics_ToolHelp", "Win32_Security"] }

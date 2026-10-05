@@ -346,8 +346,12 @@ fn probe_hole_punch(host: &str) -> bool {
     let Ok(socket) = UdpSocket::bind((Ipv4Addr::UNSPECIFIED, 0)) else {
         return false;
     };
-    if socket.set_read_timeout(Some(Duration::from_secs(2))).is_err()
-        || socket.send_to(b"NHP1 QUERY 192.0.2.1 launcher", addr).is_err()
+    if socket
+        .set_read_timeout(Some(Duration::from_secs(2)))
+        .is_err()
+        || socket
+            .send_to(b"NHP1 QUERY 192.0.2.1 launcher", addr)
+            .is_err()
     {
         return false;
     }

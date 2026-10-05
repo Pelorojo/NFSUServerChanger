@@ -90,7 +90,14 @@ fn extracts_like_expected() {
         fs::read_to_string(dir.join("Scripts/NFSUServerChanger.asi")).unwrap(),
         "asi"
     );
-    assert!(!dir.join("scripts").exists() || dir.join("scripts") == dir.join("Scripts"));
+    // No second "scripts" folder next to it (checked by listing: on Windows, "scripts"
+    // always exists because names ignore case there).
+    let scripts_dirs: Vec<String> = fs::read_dir(&dir)
+        .unwrap()
+        .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+        .filter(|n| n.eq_ignore_ascii_case("scripts"))
+        .collect();
+    assert_eq!(scripts_dirs, ["Scripts"]);
     assert_eq!(
         fs::read_to_string(dir.join("Scripts/NFSUServerChanger.ini")).unwrap(),
         "[Server]\r\nHost = mine\r\n\r\n[Community]\r\nA = http://a/\r\n"

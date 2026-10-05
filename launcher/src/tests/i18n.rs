@@ -32,7 +32,11 @@ fn parse_lines() {
 fn switch_and_fallback() {
     let dir = std::env::temp_dir().join(format!("nfsu-sel-i18n-{}", std::process::id()));
     fs::create_dir_all(&dir).unwrap();
-    fs::write(dir.join("XX.Lang"), "Language = Testish\nmain.add_to_list = Plus\n").unwrap();
+    fs::write(
+        dir.join("XX.Lang"),
+        "Language = Testish\nmain.add_to_list = Plus\n",
+    )
+    .unwrap();
     fs::write(dir.join("notes.txt"), "Language = no\n").unwrap();
 
     let names: Vec<String> = available(Some(&dir)).into_iter().map(|l| l.name).collect();

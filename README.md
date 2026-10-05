@@ -72,4 +72,6 @@ If you want to compile it yourself, you can download the source code from the gr
   renaming started
 + [Injectors](https://github.com/thelink2012/injector) by LINK/2012 and the ini parser by Denilson das Mercês Amorim and
   ThirteenAG (`plugin/includes/`)
-+ Launcher UI made with [Slint](https://slint.dev)
++ Launcher UI made with [Slint](https://slint.dev) (Slint Royalty-free License):
+
+  [![Made with Slint](https://raw.githubusercontent.com/slint-ui/slint/master/logo/MadeWithSlint-logo-whitebg.png)](https://slint.dev)

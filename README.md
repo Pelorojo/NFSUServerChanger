@@ -65,3 +65,11 @@ If you want to compile it yourself, you can download the source code from the gr
 + [Wiki](https://github.com/Pelorojo/NFSUServerChanger/wiki): installation, launcher, per-server logins,
   hole punching, Linux, troubleshooting
 + Questions: `#nfs-underground` on the [Retro Racing Point Discord](https://discord.gg/JMaypEd)
+
+# Credits
++ Programmed by Redhair
++ Originally forked from [NFSU Trax Renamer](https://github.com/nlgxzef/NFSUTraxRenamer) by nlgzrgn, where the EA Trax
+  renaming started
++ [Injectors](https://github.com/thelink2012/injector) by LINK/2012 and the ini parser by Denilson das Mercês Amorim and
+  ThirteenAG (`plugin/includes/`)
++ Launcher UI made with [Slint](https://slint.dev)

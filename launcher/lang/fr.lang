@@ -1,0 +1,152 @@
+; NFSU Server Changer Launcher - fichier de langue français
+; Modèle et explications : voir en.lang
+
+Language = Français
+
+; --- Fenêtre principale ---
+main.current_server = Serveur actuel : {0}
+main.exe_server = serveur du .exe du jeu
+main.refresh = Actualiser
+main.loading = Chargement…
+main.install_plugin = Installer le plugin
+main.installing = Installation…
+main.host_placeholder = Nom d'hôte ou IP, Entrée = sélectionner (vide = serveur du .exe du jeu)
+main.add_to_list = Ajouter à la liste
+main.remove_from_list = Retirer de la liste
+main.start_game = Lancer le jeu
+row.online = {0} en ligne
+row.checking = vérification…
+row.offline = hors ligne
+row.custom = dans ta liste
+
+; --- Menu ---
+menu.file = Fichier
+menu.open_game_folder = Ouvrir le dossier du jeu
+menu.edit_ini = Modifier NFSUServerChanger.ini
+menu.edit_trax = Modifier NFSUServerChangerTrax.csv
+menu.edit_servers = Modifier servers.dat
+menu.exit = Quitter
+menu.server = Serveur
+menu.refresh = Actualiser
+menu.use_original = Utiliser le serveur EA d'origine (ps2nfs04.ea.com)
+menu.use_exe_server = Utiliser le serveur du .exe du jeu
+menu.community = Communauté
+menu.check_updates = Rechercher des mises à jour
+menu.language = Langue
+menu.download_languages = Télécharger des langues…
+menu.settings = Paramètres…
+menu.help = Aide
+menu.about = À propos
+
+; --- Problèmes (affichés en haut) ---
+problem.not_in_game_folder = Le launcher n'est pas dans le dossier du jeu (pas de speed*.exe, pas de dossier scripts)
+problem.plugin_not_installed = Plugin non installé : {0} et {1} manquants
+problem.plugin_missing = Plugin manquant : {0} - le serveur choisi n'a aucun effet
+
+; --- Dialogue "Lancer quand même ?" ---
+start_anyway.title = Plugin non installé
+start_anyway.text = {0}.\n\nLe jeu se connectera au serveur intégré à son .exe (à l'origine ps2nfs04.ea.com, hors ligne depuis longtemps). Lancer quand même ?
+start_anyway.cancel = Annuler
+start_anyway.start = Lancer quand même
+
+; --- Droits d'administrateur (Windows) ---
+admin.title = Droits d'administrateur nécessaires
+admin.text = Le launcher ne peut pas écrire dans le dossier du jeu (par exemple parce que le jeu se trouve dans C:\Program Files). Sans cela, le serveur ne peut pas être changé et le plugin ne peut pas être installé ni mis à jour.
+admin.continue = Continuer
+admin.restart = Redémarrer en tant qu'administrateur
+ping.title = Activer les pings ?
+ping.text = Le jeu fonctionne sans, mais ses pings vers les serveurs ne marchent pas : Linux ne les autorise pas encore. "Activer maintenant" exécute cette commande en tant qu'administrateur (ton système te demande ton mot de passe) :
+ping.copy = Copier
+ping.manual = Ou exécute-la toi-même dans un terminal. Nécessite Wine 7.13 ou plus récent.
+ping.busy = En attente du mot de passe...
+ping.failed = Échec : {0}
+ping.cancelled = annulé
+ping.dont_ask = Ne plus demander
+ping.later = Plus tard
+ping.enable = Activer maintenant
+
+; --- Paramètres ---
+settings.title = Paramètres
+settings.start_command = Commande de lancement
+settings.start_command_placeholder = Vide = automatique
+settings.start_command_hint_windows = Généralement inutile : vide lance directement le speed*.exe choisi. Seulement pour lancer le jeu via un autre programme, {exe} = le speed*.exe choisi (ajouté à la fin s'il manque), par ex. C:\Tools\tool.exe {exe}
+settings.start_command_hint_linux = Généralement inutile : vide lance le jeu avec Wine ou les paramètres Lutris (voir ci-dessous). {exe} = le speed*.exe choisi (ajouté à la fin s'il manque), par ex. gamemoderun wine ou WINEPREFIX=~/Games/nfsu wine
+settings.launch_auto = Automatique : {0}, les DLL du dossier du jeu sont chargées en premier.
+settings.launch_lutris = Automatique : paramètres du jeu Lutris "{0}" ({1}).
+settings.system_wine = Wine du système
+settings.wine_missing = Wine introuvable - installe-le ou indique une commande de lancement.
+settings.ping = Pings
+settings.ping_on = Activés.
+settings.ping_off = Désactivés : le jeu fonctionne, mais ses pings vers les serveurs n'aboutissent pas.
+settings.ping_old_wine = Impossible avec {0} : nécessite Wine 7.13 ou plus récent. Le jeu fonctionne quand même, seuls ses pings n'aboutissent pas.
+settings.ping_enable = Activer...
+settings.public_lists = Listes publiques de serveurs
+settings.no_public_lists = Aucune dans [PublicList] de NFSUServerChanger.ini.
+settings.editor = Éditeur
+settings.editor_placeholder = Vide = éditeur de texte par défaut
+settings.editor_hint = Commande pour les entrées "Modifier", {file} = le fichier (ajouté à la fin s'il manque), par ex. notepad++ ou code -n {file}
+settings.cancel = Annuler
+settings.save = Enregistrer
+
+; --- Télécharger des langues ---
+langs.title = Télécharger des langues
+langs.hint = Traductions depuis GitHub, enregistrées dans le dossier "scripts\lang" du jeu.
+langs.loading = Chargement de la liste…
+langs.failed = Impossible de charger la liste : {0}
+langs.none = Aucune langue trouvée.
+langs.install = Installer
+langs.update = Mettre à jour
+langs.remove = Supprimer
+langs.close = Fermer
+
+; --- Mises à jour ---
+updates.title = Mises à jour disponibles
+updates.plugin = Plugin {0}
+updates.launcher = Launcher {0}
+updates.restart_hint = Le launcher redémarre tout seul après la mise à jour.
+updates.later = Plus tard
+updates.update = Mettre à jour
+
+; --- À propos ---
+about.project_page = Page du projet
+about.close = Fermer
+
+; --- Ligne d'état ---
+status.online = {0} serveurs en ligne.
+status.checking = Vérification de {0} serveur(s)…
+
+; --- Messages ---
+msg.checking_updates = Recherche de mises à jour…
+msg.up_to_date = Tout est à jour.
+msg.update_check_failed = Impossible de rechercher des mises à jour : {0}
+msg.downloading_plugin = Téléchargement du plugin…
+msg.plugin_installed = Plugin {0} installé.
+msg.install_failed = Échec de l'installation du plugin : {0}
+msg.downloading_launcher = Téléchargement du launcher {0}…
+msg.launcher_updated = Launcher {0} installé - redémarrage…
+msg.launcher_update_failed = Échec de la mise à jour du launcher : {0}
+msg.could_not_open = Impossible d'ouvrir {0} : {1}
+msg.could_not_write = Impossible d'écrire {0} : {1}
+msg.added_to_list = {0} est maintenant dans ta liste et toujours affiché, même hors ligne.
+msg.removed_from_list = {0} n'est plus dans ta liste.
+msg.started = {0} lancé.
+msg.game_running = {0} est déjà en cours d'exécution.
+msg.could_not_start = Impossible de lancer {0} : {1}
+msg.admin_failed = Impossible de redémarrer en tant qu'administrateur : {0}
+msg.ping_enabled = Pings activés.
+msg.wine_not_found = wine introuvable - installe-le ou indique une commande de lancement dans les paramètres
+msg.no_plugin_release = aucune version du plugin trouvée
+msg.download_corrupted = téléchargement corrompu (SHA-256 différent)
+
+; --- Vérification du nom d'hôte ---
+host.invalid_chars = Seuls les lettres, les chiffres, '.' et '-' sont autorisés.
+host.too_long = Trop long ({0} caractères max.).
+host.invalid_ip = Adresse IP invalide.
+host.empty_part = Partie vide entre deux points.
+host.label_too_long = Une partie entre deux points dépasse 63 caractères.
+host.dash = Une partie ne peut pas commencer ni finir par '-'.
+
+; --- Premier démarrage : la langue du système est disponible ---
+lang_offer.text = Le launcher est aussi disponible en {0}. Le télécharger ?
+lang_offer.download = Télécharger {0}
+lang_offer.stay = Rester en anglais

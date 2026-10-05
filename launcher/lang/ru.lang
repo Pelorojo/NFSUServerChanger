@@ -1,0 +1,152 @@
+; NFSU Server Changer Launcher - языковой файл (русский)
+; Шаблон и пояснения: см. en.lang
+
+Language = Русский
+
+; --- Главное окно ---
+main.current_server = Текущий сервер: {0}
+main.exe_server = сервер из .exe игры
+main.refresh = Обновить
+main.loading = Загрузка…
+main.install_plugin = Установить плагин
+main.installing = Установка…
+main.host_placeholder = Имя хоста или IP, Enter = выбрать (пусто = сервер из .exe игры)
+main.add_to_list = Добавить в список
+main.remove_from_list = Удалить из списка
+main.start_game = Запустить игру
+row.online = {0} онлайн
+row.checking = проверка…
+row.offline = офлайн
+row.custom = в твоём списке
+
+; --- Меню ---
+menu.file = Файл
+menu.open_game_folder = Открыть папку игры
+menu.edit_ini = Изменить NFSUServerChanger.ini
+menu.edit_trax = Изменить NFSUServerChangerTrax.csv
+menu.edit_servers = Изменить servers.dat
+menu.exit = Выход
+menu.server = Сервер
+menu.refresh = Обновить
+menu.use_original = Использовать оригинальный сервер EA (ps2nfs04.ea.com)
+menu.use_exe_server = Использовать сервер из .exe игры
+menu.community = Сообщество
+menu.check_updates = Проверить обновления
+menu.language = Язык
+menu.download_languages = Скачать языки…
+menu.settings = Настройки…
+menu.help = Помощь
+menu.about = О программе
+
+; --- Проблемы (показываются сверху) ---
+problem.not_in_game_folder = Лаунчер не в папке игры (speed*.exe и папка scripts отсутствуют)
+problem.plugin_not_installed = Плагин не установлен: отсутствует {0} и {1}
+problem.plugin_missing = Плагин отсутствует: {0} - выбранный сервер ни на что не влияет
+
+; --- Диалог "Всё равно запустить?" ---
+start_anyway.title = Плагин не установлен
+start_anyway.text = {0}.\n\nИгра подключится к серверу, встроенному в её .exe (изначально ps2nfs04.ea.com, давно отключён). Всё равно запустить?
+start_anyway.cancel = Отмена
+start_anyway.start = Всё равно запустить
+
+; --- Права администратора (Windows) ---
+admin.title = Нужны права администратора
+admin.text = Лаунчер не может записывать в папку игры (например, потому что игра лежит в C:\Program Files). Без этого нельзя сменить сервер, установить или обновить плагин.
+admin.continue = Продолжить
+admin.restart = Перезапустить от имени администратора
+ping.title = Включить пинги?
+ping.text = Игра работает и без них, но её пинги до серверов не работают: Linux их пока не разрешает. "Включить сейчас" выполнит эту команду от имени администратора (система спросит твой пароль):
+ping.copy = Копировать
+ping.manual = Или выполни её сам в терминале. Нужен Wine 7.13 или новее.
+ping.busy = Ожидание пароля...
+ping.failed = Не получилось: {0}
+ping.cancelled = отменено
+ping.dont_ask = Больше не спрашивать
+ping.later = Позже
+ping.enable = Включить сейчас
+
+; --- Настройки ---
+settings.title = Настройки
+settings.start_command = Команда запуска
+settings.start_command_placeholder = Пусто = автоматически
+settings.start_command_hint_windows = Обычно не нужно: если пусто, выбранный speed*.exe запускается напрямую. Только для запуска игры через другую программу, {exe} = выбранный speed*.exe (добавляется в конец, если его нет), напр. C:\Tools\tool.exe {exe}
+settings.start_command_hint_linux = Обычно не нужно: если пусто, игра запускается через Wine или с настройками Lutris (см. ниже). {exe} = выбранный speed*.exe (добавляется в конец, если его нет), напр. gamemoderun wine или WINEPREFIX=~/Games/nfsu wine
+settings.launch_auto = Автоматически: {0}, DLL из папки игры загружаются первыми.
+settings.launch_lutris = Автоматически: настройки игры Lutris "{0}" ({1}).
+settings.system_wine = системный Wine
+settings.wine_missing = Wine не найден - установи его или задай команду запуска.
+settings.ping = Пинги
+settings.ping_on = Включены.
+settings.ping_off = Выключены: игра работает, но её пинги до серверов не доходят.
+settings.ping_old_wine = Невозможно с {0}: нужен Wine 7.13 или новее. Игра всё равно работает, только её пинги не доходят.
+settings.ping_enable = Включить...
+settings.public_lists = Публичные списки серверов
+settings.no_public_lists = Нет ни одного в [PublicList] файла NFSUServerChanger.ini.
+settings.editor = Редактор
+settings.editor_placeholder = Пусто = текстовый редактор по умолчанию
+settings.editor_hint = Команда для пунктов "Изменить", {file} = файл (добавляется в конец, если его нет), напр. notepad++ или code -n {file}
+settings.cancel = Отмена
+settings.save = Сохранить
+
+; --- Скачать языки ---
+langs.title = Скачать языки
+langs.hint = Переводы с GitHub, сохраняются в папке игры "scripts\lang".
+langs.loading = Загрузка списка…
+langs.failed = Не удалось загрузить список: {0}
+langs.none = Языки не найдены.
+langs.install = Установить
+langs.update = Обновить
+langs.remove = Удалить
+langs.close = Закрыть
+
+; --- Обновления ---
+updates.title = Доступны обновления
+updates.plugin = Плагин {0}
+updates.launcher = Лаунчер {0}
+updates.restart_hint = После обновления лаунчер перезапустится сам.
+updates.later = Позже
+updates.update = Обновить
+
+; --- О программе ---
+about.project_page = Страница проекта
+about.close = Закрыть
+
+; --- Строка состояния ---
+status.online = Серверов онлайн: {0}.
+status.checking = Проверка серверов: {0}…
+
+; --- Сообщения ---
+msg.checking_updates = Проверка обновлений…
+msg.up_to_date = Всё обновлено.
+msg.update_check_failed = Не удалось проверить обновления: {0}
+msg.downloading_plugin = Загрузка плагина…
+msg.plugin_installed = Плагин {0} установлен.
+msg.install_failed = Не удалось установить плагин: {0}
+msg.downloading_launcher = Загрузка лаунчера {0}…
+msg.launcher_updated = Лаунчер {0} установлен - перезапуск…
+msg.launcher_update_failed = Не удалось обновить лаунчер: {0}
+msg.could_not_open = Не удалось открыть {0}: {1}
+msg.could_not_write = Не удалось записать {0}: {1}
+msg.added_to_list = {0} теперь в твоём списке и показывается всегда, даже офлайн.
+msg.removed_from_list = {0} больше нет в твоём списке.
+msg.started = {0} запущен.
+msg.game_running = {0} уже запущен.
+msg.could_not_start = Не удалось запустить {0}: {1}
+msg.admin_failed = Не удалось перезапустить от имени администратора: {0}
+msg.ping_enabled = Пинги включены.
+msg.wine_not_found = wine не найден - установи его или задай команду запуска в настройках
+msg.no_plugin_release = релиз плагина не найден
+msg.download_corrupted = загрузка повреждена (не совпадает SHA-256)
+
+; --- Проверка имени хоста ---
+host.invalid_chars = Разрешены только буквы, цифры, '.' и '-'.
+host.too_long = Слишком длинное (макс. {0} символов).
+host.invalid_ip = Недопустимый IP-адрес.
+host.empty_part = Пустая часть между точками.
+host.label_too_long = Часть между точками длиннее 63 символов.
+host.dash = Часть не может начинаться или заканчиваться на '-'.
+
+; --- Первый запуск: язык системы доступен для загрузки ---
+lang_offer.text = Лаунчер также доступен на языке: {0}. Скачать?
+lang_offer.download = Скачать {0}
+lang_offer.stay = Остаться на английском

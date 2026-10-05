@@ -1,0 +1,152 @@
+; NFSU Server Changer Launcher - fișier de limbă română
+; Șablon și explicații: vezi en.lang
+
+Language = Română
+
+; --- Fereastră principala ---
+main.current_server = Server-ul Selectat: {0}
+main.exe_server = Server-ul din .exe jocului
+main.refresh = Reîncărcare
+main.loading = Încarcare…
+main.install_plugin = Instalează plugin-ul
+main.installing = Se instalează…
+main.host_placeholder = Numele hostului sau IP, cu Enter selectezi (spațiu gol = sever-ul din .exe-ul jocului)
+main.add_to_list = Adaugă in listă
+main.remove_from_list = Șterge din listă
+main.start_game = Începe jocul
+row.online = {0} online
+row.checking = verificare…
+row.offline = offline
+row.custom = în lista ta
+
+; --- Menu ---
+menu.file = fișier
+menu.open_game_folder = deschide fișierul jocului
+menu.edit_ini = Editează NFSUServerChanger.ini
+menu.edit_trax = Editează NFSUServerChangerTrax.csv
+menu.edit_servers = Editează servers.dat
+menu.exit = Ieșire
+menu.server = Server
+menu.refresh = Reîmprospătare
+menu.use_original = Folosește server-ul original EA (ps2nfs04.ea.com)
+menu.use_exe_server = Foloseste server-ul din .exe-ul jocului
+menu.community = Comunitate
+menu.check_updates = Verifică actualizările
+menu.language = Limbă
+menu.download_languages = Descarcă limbile…
+menu.settings = Setări…
+menu.help = Ajutor
+menu.about = Despre
+
+; --- Problems (shown at the top) ---
+problem.not_in_game_folder = Launcher-ul nu este in fișierul jocului (lipsesc speed.exe și/sau folderul de scripts)
+problem.plugin_not_installed = Plugin-ul nu este instalat: {0} și {1} lipsesc
+problem.plugin_missing = Lipsește plugin-ul {0} - server-ul selectat nu funcționează
+
+; --- "Start anyway?" dialog ---
+start_anyway.title = Plugin-ul nu e instalat
+start_anyway.text = {0}.\n\nJocul se va conecta la serverul lui de la lansare (fostul ps2nfs04.ea.com, offline de mult timp). Vrei sa incepi jocul oricum?
+start_anyway.cancel = Anulează
+start_anyway.start = Începe oricum
+
+; --- Administrator rights (Windows) ---
+admin.title = Necesar să activezi drepturile de administrator
+admin.text = Launcher-ul nu poate modifica datele din fișierul jocului (d.e. pentru ca jocul este în C:\Program Files). Fără a putea face modificări, server-ul nu poate fi modificat sau nu vei putea instala plugin-uri pentru joc
+admin.continue = Continuă
+admin.restart = Dă restart ca administrator
+ping.title = Activează ping-urile
+ping.text = Jocul merge fără  ele, dar ping-urile spre server nu ajung: Linux incă nu le permite. "Pornește acum" rulează această comandă ca administrator (sistemul îțî va cere parola):
+ping.copy = Copiază
+ping.manual = sau rulează-l tu singur în terminal. Îți trebuie Wine 7.13 sau mai nou.
+ping.busy = Aștept parola...
+ping.failed = N-a mers: {0}
+ping.cancelled = anulat
+ping.dont_ask = Nu mai întreba
+ping.later = Mai încolo
+ping.enable = Pornește acum
+
+; --- Settings ---
+settings.title = Setări
+settings.start_command = Începe comanda
+settings.start_command_placeholder = Gol = Începe automat
+settings.start_command_hint_windows = Deobicei nu îți trebuie: Golul pornește speed*.exe-ul selectat direct. Doar daca vrei sa pornești jocul printr-un alt program, {exe} = speed*.exe este cel selectat (rămâne atașat daca lipsește), d.e. C:\Tools\tool.exe {exe}
+settings.start_command_hint_linux = De obicei nu e nevoie: gol pornește jocul cu Wine sau cu setările Lutris (vezi mai jos). {exe} = speed*.exe-ul ales (adăugat la final dacă lipsește), de ex. gamemoderun wine sau WINEPREFIX=~/Games/nfsu wine
+settings.launch_auto = Automat: {0}, DLL-urile din folderul jocului se încarcă primele.
+settings.launch_lutris = Automat: setările jocului Lutris "{0}" ({1}).
+settings.system_wine = Wine-ul sistemului
+settings.wine_missing = Wine nu a fost găsit - instalează-l sau setează o comandă de pornire.
+settings.ping = Ping-uri
+settings.ping_on = Activate.
+settings.ping_off = Dezactivate: jocul merge, dar ping-urile lui către servere nu primesc răspuns.
+settings.ping_old_wine = Nu se poate cu {0}: necesită Wine 7.13 sau mai nou. Jocul merge oricum, doar ping-urile lui nu primesc răspuns.
+settings.ping_enable = Activează...
+settings.public_lists = Liste publice de servere
+settings.no_public_lists = Niciuna în [PublicList] din NFSUServerChanger.ini.
+settings.editor = Editor
+settings.editor_placeholder = Gol = editorul de text implicit
+settings.editor_hint = Comanda pentru intrările "Editează", {file} = fișierul (adăugat la final dacă lipsește), de ex. notepad++ sau code -n {file}
+settings.cancel = Anulează
+settings.save = Salvează
+
+; --- Descarcă limbi ---
+langs.title = Descarcă limbi
+langs.hint = Traduceri de pe GitHub, salvate în folderul "scripts\lang" al jocului.
+langs.loading = Se încarcă lista…
+langs.failed = Lista nu a putut fi încărcată: {0}
+langs.none = Nu s-a găsit nicio limbă.
+langs.install = Instalează
+langs.update = Actualizează
+langs.remove = Elimină
+langs.close = Închide
+
+; --- Actualizări ---
+updates.title = Actualizări disponibile
+updates.plugin = Plugin {0}
+updates.launcher = Launcher {0}
+updates.restart_hint = Launcherul repornește singur după actualizare.
+updates.later = Mai târziu
+updates.update = Actualizează
+
+; --- Despre ---
+about.project_page = Pagina proiectului
+about.close = Închide
+
+; --- Linia de stare ---
+status.online = {0} servere online.
+status.checking = Se verifică {0} server(e)…
+
+; --- Mesaje ---
+msg.checking_updates = Se caută actualizări…
+msg.up_to_date = Totul este la zi.
+msg.update_check_failed = Nu s-au putut căuta actualizări: {0}
+msg.downloading_plugin = Se descarcă pluginul…
+msg.plugin_installed = Pluginul {0} a fost instalat.
+msg.install_failed = Instalarea pluginului a eșuat: {0}
+msg.downloading_launcher = Se descarcă launcherul {0}…
+msg.launcher_updated = Launcherul {0} a fost instalat - repornire…
+msg.launcher_update_failed = Actualizarea launcherului a eșuat: {0}
+msg.could_not_open = Nu s-a putut deschide {0}: {1}
+msg.could_not_write = Nu s-a putut scrie {0}: {1}
+msg.added_to_list = {0} este acum în lista ta și apare mereu, chiar și offline.
+msg.removed_from_list = {0} nu mai este în lista ta.
+msg.started = {0} a fost pornit.
+msg.game_running = {0} rulează deja.
+msg.could_not_start = Nu s-a putut porni {0}: {1}
+msg.admin_failed = Nu s-a putut reporni ca administrator: {0}
+msg.ping_enabled = Ping-urile au fost activate.
+msg.wine_not_found = wine nu a fost găsit - instalează-l sau setează o comandă de pornire în setări
+msg.no_plugin_release = nu s-a găsit nicio versiune a pluginului
+msg.download_corrupted = descărcare coruptă (SHA-256 nu se potrivește)
+
+; --- Verificarea numelui de host ---
+host.invalid_chars = Sunt permise doar litere, cifre, '.' și '-'.
+host.too_long = Prea lung (max. {0} caractere).
+host.invalid_ip = Nu este o adresă IP validă.
+host.empty_part = Parte goală între puncte.
+host.label_too_long = O parte dintre puncte are mai mult de 63 de caractere.
+host.dash = O parte nu poate începe sau se termina cu '-'.
+
+; --- Prima pornire: limba sistemului poate fi descărcată ---
+lang_offer.text = Launcherul este disponibil și în {0}. Vrei sa îl descarci?
+lang_offer.download = Descarcă {0}
+lang_offer.stay = Rămân la engleză

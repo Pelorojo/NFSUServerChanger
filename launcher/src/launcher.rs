@@ -169,14 +169,42 @@ fn process_names() -> Vec<String> {
 }
 
 /// Opens a folder, file or URL with the system's default handler.
+#[cfg(not(windows))]
 pub fn open(target: &str) -> std::io::Result<()> {
-    let mut cmd = Command::new(if cfg!(windows) {
-        "explorer"
-    } else {
-        "xdg-open"
-    });
+    let mut cmd = Command::new("xdg-open");
     cmd.arg(target);
     spawn(cmd)
+}
+
+/// Opens a folder, file or URL with the system's default handler. Not via
+/// `explorer <target>`: explorer splits its command line at '=' and ',', so
+/// "https://...doku.php?id=tutorials:serverchanger" became "tutorials:serverchanger"
+/// and Windows asked for an app for a "tutorials:" link.
+#[cfg(windows)]
+pub fn open(target: &str) -> std::io::Result<()> {
+    use windows_sys::Win32::UI::Shell::ShellExecuteW;
+    use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+
+    let wide = |s: &str| s.encode_utf16().chain(Some(0)).collect::<Vec<u16>>();
+    let verb = wide("open");
+    let file = wide(target);
+    // SAFETY: both strings are NUL-terminated UTF-16 and outlive the call.
+    let result = unsafe {
+        ShellExecuteW(
+            std::ptr::null_mut(),
+            verb.as_ptr(),
+            file.as_ptr(),
+            std::ptr::null(),
+            std::ptr::null(),
+            SW_SHOWNORMAL,
+        )
+    };
+    // Success is a value above 32.
+    if result as isize > 32 {
+        Ok(())
+    } else {
+        Err(std::io::Error::last_os_error())
+    }
 }
 
 pub fn launch(exe: &Path, game_dir: &Path, custom_command: &str) -> std::io::Result<()> {

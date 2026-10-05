@@ -60,3 +60,8 @@ once - the launcher offers to do this, or run it yourself:
 # Download
 You can [download Server Changer](https://github.com/Pelorojo/NFSUServerChanger/releases) from Releases page, or from [NFS.onl](https://nfs.onl/files/asi).
 If you want to compile it yourself, you can download the source code from the green Clone or Download button up there.
+
+# Guide and help
++ [Wiki](https://github.com/Pelorojo/NFSUServerChanger/wiki): installation, launcher, per-server logins,
+  hole punching, Linux, troubleshooting
++ Questions: `#nfs-underground` on the [Retro Racing Point Discord](https://discord.gg/JMaypEd)

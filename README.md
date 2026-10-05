@@ -2,6 +2,10 @@
 NFSU Server Changer is a script mod which can change the gameserver without HEX editing the .exe file manually,
 but also features renaming EATrax, see .ini file for details.
 
+Optional launcher for Windows and Linux (kickStart users don't need it):
+
+![NFSU Server Changer launcher](docs/images/launcher.png)
+
 There are following options:
 
 Game server:

@@ -120,7 +120,8 @@ keep those encodings when editing.
 ## Releases
 
 - Plugin: tag `v1.0.0.<build>`, asset `NFSU.Server.Changer.v<version>.zip` containing
-  `dinput8.dll`, `readme.txt`, `scripts/{NFSUServerChanger.asi, .ini, NFSUServerChangerTrax.csv}`.
+  `dinput8.dll`, `scripts/{NFSUServerChanger.asi, .ini, NFSUServerChangerTrax.csv}` (no readme since
+  v1.0.0.1994; older zips have `readme.txt`, which the installer skips).
   The launcher release archive contains just the binary (no `lang/` folder).
   Bump the version in `plugin/NFSUServerChanger.rc` (FILEVERSION, PRODUCTVERSION and both
   strings).

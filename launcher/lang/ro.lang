@@ -147,6 +147,6 @@ host.label_too_long = O parte dintre puncte are mai mult de 63 de caractere.
 host.dash = O parte nu poate începe sau se termina cu '-'.
 
 ; --- Prima pornire: limba sistemului poate fi descărcată ---
-lang_offer.text = Launcherul este disponibil și în {0}. Vrei sa îl descarci?
+lang_offer.text = Launcherul este disponibil și în {0}. Vrei să îl descarci?
 lang_offer.download = Descarcă {0}
 lang_offer.stay = Rămân la engleză

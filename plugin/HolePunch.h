@@ -545,14 +545,16 @@ static int WINAPI Hooked_recvfrom(SOCKET s, char* buf, int len, int flags, socka
     LeaveCriticalSection(&g_lock);
 
     // A peer answering from its real port: report it to the game as ADDRn:3658, the address
-    // it expects (and sends its replies to, which sendto() redirects again).
-    if (srcPort != GAME_PORT)
+    // it expects (and sends its replies to, which sendto() redirects again). Only on the game's
+    // socket and only for a port the service reported: the game's pings (ICMP, port 0) come
+    // from the same IPs and matched a peer whose port is still unknown (0).
+    if (s == g_gameSocket && srcPort != GAME_PORT)
     {
         bool known = false;
         EnterCriticalSection(&g_lock);
         for (const Peer& peer : g_peers)
         {
-            if (peer.ip == src->sin_addr.s_addr && peer.port == srcPort) known = true;
+            if (peer.ip == src->sin_addr.s_addr && peer.port != 0 && peer.port == srcPort) known = true;
         }
         LeaveCriticalSection(&g_lock);
 

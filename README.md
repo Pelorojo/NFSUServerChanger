@@ -26,7 +26,7 @@ while the game runs works too: the login screen loads the current server's login
 If the server is changed while the login screen is already open, that login fails (like an
 unreachable server) instead of sending the other server's login - just open the screen again.
 
-Hole Punching (always on):
+Hole Punching (on, except when the selected server is nfsu.online):
 + Log (1 = write NFSUServerChanger_HolePunch.log next to the .asi; default 0)
 
 Races are peer-to-peer: every player talks to the host over UDP 3658, but the lobby only tells
@@ -38,6 +38,11 @@ other players' ports; the game's packets then go to the right port, and the game
 packets open both NATs. If nothing arrives directly after a few seconds, the race is relayed
 through the server instead. Players without the plugin, and servers without the service, are
 not affected. A local firewall (e.g. ufw on Linux) still has to allow UDP 3658-3659.
+
+When `[Server] Host` is `nfsu.online` (a `:port` suffix is ignored, and an empty Host uses the
+name already in the .exe), hole punching is not installed. That server relays races with its own
+plugin, which hooks the same Winsock imports. Installing ours first keeps that plugin from seeing
+the game's socket. The choice is the Host at startup: restart the game after changing it.
 
 Trax Renamer:
 + NoQuotes

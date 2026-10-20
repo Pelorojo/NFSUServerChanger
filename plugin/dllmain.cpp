@@ -8,6 +8,7 @@ Programmed by Redhair in 2026
 */
 #include "stdafx.h"
 #include "stdio.h"
+#include <string.h>
 #include <string>
 #include <windows.h>
 #include "includes\injector\injector.hpp"
@@ -162,6 +163,36 @@ string CurrentServer()
 	return server;
 }
 
+// Host name from [Server] Host, or the .exe's server when Host is empty.
+// "name:port" keeps only the name. Spaces around it are ignored.
+string SelectedHostName()
+{
+	CIniReader iniReader(iniFile);
+	string hostName;
+	DWORD hostPort;
+	splitHostPort(iniReader.ReadString("Server", "Host", string(defaultSrv)), hostName, hostPort);
+	while (!hostName.empty() && (hostName.back() == ' ' || hostName.back() == '\t'))
+		hostName.pop_back();
+	size_t start = 0;
+	while (start < hostName.size() && (hostName[start] == ' ' || hostName[start] == '\t'))
+		start++;
+	if (start > 0)
+		hostName.erase(0, start);
+	if (hostName.empty())
+		hostName = exeServer;
+	return hostName;
+}
+
+// nfsu.online relays race UDP itself and hooks the same Winsock imports.
+// Hole punching has to be installed from DllMain, before that relay scans the
+// import table; patching the slots here makes the relay skip them. Leave the
+// slots alone when this server is selected at startup. A later login cannot
+// install them: the relay scans only once.
+bool HolePunchConflictsWithServer()
+{
+	return _stricmp(SelectedHostName().c_str(), "nfsu.online") == 0;
+}
+
 // The game's resolver: looks up the host name, with a timeout in ms.
 typedef void* (__cdecl *ResolveHost)(const char* host, int timeoutMs);
 
@@ -199,7 +230,10 @@ int Init()
 	InstallPingFix(pingCallAddr, socketWrapperAddr);
 
 	// [HolePunch] Log = 1: NFSUServerChanger_HolePunch.log next to the .asi.
-	HolePunch::Install(iniReader.ReadString("HolePunch", "Log", string("0")) == "1");
+	// Not installed for nfsu.online: that server's relay needs these imports free.
+	if (!HolePunchConflictsWithServer()) {
+		HolePunch::Install(iniReader.ReadString("HolePunch", "Log", string("0")) == "1");
+	}
 
 	InstallServerLogins(proReadPathCallAddr, proWritePathCallAddr, proDeletePathCallAddr, sprintfAddr,
 		authReplyPushAddr, authReplyAddr, saveLoginAddr,

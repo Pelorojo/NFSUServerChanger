@@ -168,6 +168,9 @@ struct Peer
     DWORD nextQuery = 0;
     DWORD raceStart = 0;       // when +ses arrived
     bool directSeen = false;   // a packet came straight from the peer
+    unsigned short directPort = 0; // port of that first packet from its public IP, 0 = none; it works,
+                               // so it wins over `port` (e.g. two players behind one router reach
+                               // each other on 3658 while the service sees another port)
     bool relay = false;        // packets for this peer go through the service
     unsigned int token = 0;    // pair token for the relay, same on both sides
     bool hasPlugin = false;    // said HELLO (maybe from another IP) - the relay can be used
@@ -425,7 +428,8 @@ static int WINAPI Hooked_sendto(SOCKET s, const char* buf, int len, int flags, c
             bool publicIp = peer.ip == dest->sin_addr.s_addr;
             if (publicIp || (peer.localIp != 0 && peer.localIp == dest->sin_addr.s_addr))
             {
-                realPort = publicIp ? peer.port : 0; // a redirect only applies to the public address
+                // A redirect only applies to the public address; a port the peer already came from wins
+                realPort = publicIp ? (peer.directPort != 0 ? peer.directPort : peer.port) : 0;
                 relay = peer.relay;
                 token = peer.token;
                 peer.gameDest = dest->sin_addr.s_addr;
@@ -539,6 +543,8 @@ static int WINAPI Hooked_recvfrom(SOCKET s, char* buf, int len, int flags, socka
             && (peer.ip == src->sin_addr.s_addr || (peer.localIp != 0 && peer.localIp == src->sin_addr.s_addr)))
         {
             peer.directSeen = true;
+            if (peer.ip == src->sin_addr.s_addr)
+                peer.directPort = srcPort;
             LogLine("direct: first packet from %s", AddrToString(from).c_str());
         }
     }

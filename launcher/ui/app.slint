@@ -448,21 +448,28 @@ export component AppWindow inherits Window {
                     text: Tr.get("langs.none", Tr.revision);
                     opacity: 0.7;
                 }
-                for lang in root.lang-packages: HorizontalLayout {
-                    spacing: 8px;
-                    Text {
-                        text: lang.name;
-                        vertical-alignment: center;
-                        horizontal-stretch: 1;
-                    }
-                    if !lang.installed || lang.update: Button {
-                        text: lang.installed ? Tr.get("langs.update", Tr.revision) : Tr.get("langs.install", Tr.revision);
-                        primary: !lang.installed;
-                        clicked => { root.install-language(lang.code); }
-                    }
-                    if lang.installed: Button {
-                        text: Tr.get("langs.remove", Tr.revision);
-                        clicked => { root.remove-language(lang.code); }
+                // Scrolls once the languages don't fit: as high as the rows, at most what's left of the window.
+                if root.lang-packages.length > 0: ListView {
+                    height: min(root.lang-packages.length * 44px, max(88px, root.height - 240px));
+                    for lang in root.lang-packages: HorizontalLayout {
+                        spacing: 8px;
+                        padding-top: 4px;
+                        padding-bottom: 4px;
+                        padding-right: 12px; // room for the scroll bar
+                        Text {
+                            text: lang.name;
+                            vertical-alignment: center;
+                            horizontal-stretch: 1;
+                        }
+                        if !lang.installed || lang.update: Button {
+                            text: lang.installed ? Tr.get("langs.update", Tr.revision) : Tr.get("langs.install", Tr.revision);
+                            primary: !lang.installed;
+                            clicked => { root.install-language(lang.code); }
+                        }
+                        if lang.installed: Button {
+                            text: Tr.get("langs.remove", Tr.revision);
+                            clicked => { root.remove-language(lang.code); }
+                        }
                     }
                 }
                 HorizontalBox {

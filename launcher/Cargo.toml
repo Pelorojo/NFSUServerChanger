@@ -1,6 +1,6 @@
 [package]
 name = "nfsu-server-changer-launcher"
-version = "1.0.0+1001"
+version = "1.0.0+1002"
 edition = "2021"
 description = "Launcher for NFSUServerChanger: pick an NFSU online server and start the game"
 

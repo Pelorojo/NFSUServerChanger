@@ -17,6 +17,8 @@
 // 4. sendto() to ADDRn:3658 goes to ADDRn:<real port>; recvfrom() reports packets from
 //    ADDRn:<real port> to the game as ADDRn:3658. The game's own start packets (host `05`,
 //    client `01`, sent at the same time) then open both NATs - no extra punch packets needed.
+//    A peer whose packets reached the game from its real port before the service answered
+//    keeps that address in recvfrom(): the game already works with it, as it would without us.
 //
 // 5. Relay fallback: if nothing arrives from a peer RELAY_AFTER_MS after the race start (both
 //    NATs symmetric, e.g. mobile or WARP), the game's packets for that peer go to the service
@@ -171,6 +173,8 @@ struct Peer
     unsigned short directPort = 0; // port of that first packet from its public IP, 0 = none; it works,
                                // so it wins over `port` (e.g. two players behind one router reach
                                // each other on 3658 while the service sees another port)
+    bool gameSawPort = false;  // that first packet reached the game unchanged from its real port (before
+                               // the service answered) - the game knows it, recvfrom() never rewrites it
     bool relay = false;        // packets for this peer go through the service
     unsigned int token = 0;    // pair token for the relay, same on both sides
     bool hasPlugin = false;    // said HELLO (maybe from another IP) - the relay can be used
@@ -544,8 +548,12 @@ static int WINAPI Hooked_recvfrom(SOCKET s, char* buf, int len, int flags, socka
         {
             peer.directSeen = true;
             if (peer.ip == src->sin_addr.s_addr)
+            {
                 peer.directPort = srcPort;
-            LogLine("direct: first packet from %s", AddrToString(from).c_str());
+                peer.gameSawPort = (srcPort != GAME_PORT && peer.port == 0);
+            }
+            LogLine("direct: first packet from %s%s", AddrToString(from).c_str(),
+                peer.gameSawPort ? " (before the query - its port is never rewritten)" : "");
         }
     }
     LeaveCriticalSection(&g_lock);
@@ -553,14 +561,17 @@ static int WINAPI Hooked_recvfrom(SOCKET s, char* buf, int len, int flags, socka
     // A peer answering from its real port: report it to the game as ADDRn:3658, the address
     // it expects (and sends its replies to, which sendto() redirects again). Only on the game's
     // socket and only for a port the service reported: the game's pings (ICMP, port 0) come
-    // from the same IPs and matched a peer whose port is still unknown (0).
+    // from the same IPs and matched a peer whose port is still unknown (0). Not once the game has
+    // seen the peer on that port: switching its address mid-handshake makes a host with an open 3658
+    // end the race after ~10 s (type 03) against a joiner whose NAT changes the port (reproduced).
     if (s == g_gameSocket && srcPort != GAME_PORT)
     {
         bool known = false;
         EnterCriticalSection(&g_lock);
         for (const Peer& peer : g_peers)
         {
-            if (peer.ip == src->sin_addr.s_addr && peer.port != 0 && peer.port == srcPort) known = true;
+            if (peer.ip == src->sin_addr.s_addr && peer.port != 0 && peer.port == srcPort && !peer.gameSawPort)
+                known = true;
         }
         LeaveCriticalSection(&g_lock);
 
